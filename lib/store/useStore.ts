@@ -77,6 +77,7 @@ export const useStore = create<StoreState>()(
     {
       name: 'printmax-store',
       partialize: state => ({ items: state.items, tieneFactura: state.tieneFactura }),
+      skipHydration: true,
     }
   )
 )

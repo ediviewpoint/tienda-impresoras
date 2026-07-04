@@ -65,9 +65,11 @@ export default function CheckoutPage() {
   const clear = useStore(s => s.clear)
   const total = useCartTotal()
 
+  const [hydrated, setHydrated] = useState(false)
+  useEffect(() => { setHydrated(true) }, [])
   useEffect(() => {
-    if (items.length === 0) router.replace('/carrito')
-  }, [items.length, router])
+    if (hydrated && items.length === 0) router.replace('/carrito')
+  }, [hydrated, items.length, router])
 
   const [done, setDone] = useState(false)
   const [saving, setSaving] = useState(false)
