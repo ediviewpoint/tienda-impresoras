@@ -10,18 +10,19 @@ const footerLinks = {
     ['Papel y Medios', '/catalogo?cat=papel'],
   ],
   'Mi cuenta': [
-    ['Iniciar sesión', '/cuenta'],
-    ['Registrarse', '/cuenta'],
-    ['Mis pedidos', '/cuenta/pedidos'],
-    ['Lista de deseos', '/cuenta/favoritos'],
-    ['Devoluciones', '/cuenta/devoluciones'],
+    ['Iniciar sesión', '/auth/login'],
+    ['Registrarse', '/auth/register'],
+    ['Mi cuenta', '/cuenta'],
+    ['Devoluciones', '/devoluciones'],
   ],
   Información: [
     ['Sobre nosotros', '#'],
     ['Sucursales', '#'],
     ['Blog técnico', '#'],
     ['Preguntas frecuentes', '#'],
-    ['Política de privacidad', '#'],
+    ['Política de privacidad', '/privacidad'],
+    ['Términos y condiciones', '/terminos'],
+    ['Devoluciones', '/devoluciones'],
   ],
 }
 

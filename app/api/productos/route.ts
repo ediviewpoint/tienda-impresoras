@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { prisma } from '@/lib/db'
+import { PRODUCT_INCLUDE } from '@/lib/db-utils'
 
 export async function GET(req: NextRequest) {
   const { searchParams } = new URL(req.url)
@@ -8,12 +9,12 @@ export async function GET(req: NextRequest) {
   const active = searchParams.get('active')
 
   const where = {
-    ...(cat ? { category: cat } : {}),
+    ...(cat ? { category: { slug: cat } } : {}),
     ...(active !== null ? { active: active !== 'false' } : {}),
     ...(q ? {
       OR: [
         { name: { contains: q } },
-        { brand: { contains: q } },
+        { brand: { name: { contains: q } } },
         { sku: { contains: q } },
       ],
     } : {}),
@@ -21,10 +22,26 @@ export async function GET(req: NextRequest) {
 
   const products = await prisma.product.findMany({
     where,
+    include: PRODUCT_INCLUDE,
     orderBy: { createdAt: 'desc' },
   })
 
   return NextResponse.json({ products, total: products.length })
+}
+
+async function resolveOrCreateBrand(brandName: string, brandColor?: string) {
+  const slug = brandName.toLowerCase().replace(/\s+/g, '-').replace(/[^a-z0-9-]/g, '')
+  return prisma.brand.upsert({
+    where: { slug },
+    update: { ...(brandColor ? { color: brandColor } : {}) },
+    create: { name: brandName, slug, color: brandColor ?? '#1852D9' },
+  })
+}
+
+async function resolveCategory(categorySlug: string) {
+  const cat = await prisma.category.findUnique({ where: { slug: categorySlug } })
+  if (!cat) throw new Error(`Categoría no encontrada: ${categorySlug}`)
+  return cat
 }
 
 export async function POST(req: NextRequest) {
@@ -44,25 +61,38 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: 'Ya existe un producto con ese slug o SKU' }, { status: 409 })
   }
 
-  const product = await prisma.product.create({
-    data: {
-      slug: body.slug,
-      name: body.name,
-      brand: body.brand,
-      brandColor: body.brandColor ?? '#1852D9',
-      price: Number(body.price),
-      originalPrice: body.originalPrice ? Number(body.originalPrice) : null,
-      rating: body.rating ? Number(body.rating) : 5,
-      reviewCount: body.reviewCount ? Number(body.reviewCount) : 0,
-      badge: body.badge ?? null,
-      category: body.category,
-      description: body.description,
-      features: Array.isArray(body.features) ? JSON.stringify(body.features) : body.features ?? '[]',
-      inStock: body.inStock ?? true,
-      sku: body.sku,
-      active: body.active ?? true,
-    },
-  })
+  try {
+    const brand = await resolveOrCreateBrand(body.brand, body.brandColor)
+    const category = await resolveCategory(body.category)
 
-  return NextResponse.json({ product }, { status: 201 })
+    const features = Array.isArray(body.features) ? JSON.stringify(body.features) : body.features ?? '[]'
+    const imageUrls: string[] = Array.isArray(body.images) ? body.images : (body.image ? [body.image] : [])
+
+    const product = await prisma.product.create({
+      data: {
+        slug: body.slug,
+        name: body.name,
+        brandId: brand.id,
+        categoryId: category.id,
+        price: Number(body.price),
+        originalPrice: body.originalPrice ? Number(body.originalPrice) : null,
+        rating: body.rating ? Number(body.rating) : 5,
+        reviewCount: body.reviewCount ? Number(body.reviewCount) : 0,
+        badge: body.badge ?? null,
+        description: body.description,
+        features,
+        inStock: body.inStock ?? true,
+        sku: body.sku,
+        active: body.active ?? true,
+        images: {
+          create: imageUrls.map((url, i) => ({ url, order: i })),
+        },
+      },
+      include: PRODUCT_INCLUDE,
+    })
+
+    return NextResponse.json({ product }, { status: 201 })
+  } catch (err) {
+    return NextResponse.json({ error: err instanceof Error ? err.message : 'Error interno' }, { status: 500 })
+  }
 }

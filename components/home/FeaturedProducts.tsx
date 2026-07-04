@@ -6,6 +6,7 @@ import { ProductGrid } from '@/components/product/ProductGrid'
 export async function FeaturedProducts() {
   const dbProducts = await prisma.product.findMany({
     where: { active: true, inStock: true },
+    include: { brand: true, category: true, images: { orderBy: { order: 'asc' } } },
     orderBy: { reviewCount: 'desc' },
     take: 4,
   })

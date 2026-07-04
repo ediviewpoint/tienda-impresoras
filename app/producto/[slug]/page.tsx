@@ -3,6 +3,7 @@ import { notFound } from 'next/navigation'
 import { prisma } from '@/lib/db'
 import { dbToUIProduct } from '@/lib/db-utils'
 import { ProductDetail } from './ProductDetail'
+import { ReviewForm } from '@/components/product/ReviewForm'
 
 interface Props {
   params: Promise<{ slug: string }>
@@ -10,7 +11,10 @@ interface Props {
 
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const { slug } = await params
-  const p = await prisma.product.findUnique({ where: { slug, active: true } })
+  const p = await prisma.product.findUnique({
+    where: { slug, active: true },
+    include: { brand: true, category: true, images: { orderBy: { order: 'asc' } } },
+  })
   if (!p) return { title: 'Producto no encontrado' }
 
   const title = `${p.name} | PrintMax`
@@ -24,7 +28,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
       description,
       type: 'website',
       siteName: 'PrintMax',
-      ...(p.image ? { images: [{ url: p.image, width: 600, height: 400 }] } : {}),
+      ...(p.images[0] ? { images: [{ url: p.images[0].url, width: 600, height: 400 }] } : {}),
     },
     twitter: { card: 'summary_large_image', title, description },
   }
@@ -32,7 +36,60 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
 
 export default async function ProductPage({ params }: Props) {
   const { slug } = await params
-  const p = await prisma.product.findUnique({ where: { slug, active: true } })
+  const p = await prisma.product.findUnique({
+    where: { slug, active: true },
+    include: {
+      brand: true,
+      category: true,
+      images: { orderBy: { order: 'asc' } },
+      reviews: { include: { user: { select: { name: true } } }, orderBy: { createdAt: 'desc' } },
+    },
+  })
   if (!p) notFound()
-  return <ProductDetail product={dbToUIProduct(p)} />
+
+  const jsonLd = {
+    '@context': 'https://schema.org',
+    '@type': 'Product',
+    name: p.name,
+    description: p.description,
+    sku: p.sku,
+    brand: { '@type': 'Brand', name: p.brand.name },
+    offers: {
+      '@type': 'Offer',
+      priceCurrency: 'MXN',
+      price: p.price,
+      availability: p.inStock
+        ? 'https://schema.org/InStock'
+        : 'https://schema.org/OutOfStock',
+      seller: { '@type': 'Organization', name: 'PrintMax' },
+    },
+    ...(p.images[0] ? { image: p.images[0].url } : {}),
+    ...(p.rating ? {
+      aggregateRating: {
+        '@type': 'AggregateRating',
+        ratingValue: p.rating,
+        reviewCount: p.reviewCount,
+      },
+    } : {}),
+  }
+
+  return (
+    <>
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
+      />
+      <ProductDetail product={dbToUIProduct(p)} />
+      <ReviewForm
+        productId={p.id}
+        initialReviews={p.reviews.map(r => ({
+          id: r.id,
+          rating: r.rating,
+          body: r.body,
+          createdAt: r.createdAt.toISOString(),
+          user: r.user,
+        }))}
+      />
+    </>
+  )
 }

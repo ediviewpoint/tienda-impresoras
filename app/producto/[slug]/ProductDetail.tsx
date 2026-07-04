@@ -1,13 +1,13 @@
 'use client'
 
 import { useState } from 'react'
-import Image from 'next/image'
 import { motion } from 'framer-motion'
 import { Product } from '@/lib/types'
 import { Badge } from '@/components/ui/Badge'
 import { StarRating } from '@/components/ui/StarRating'
 import { AnimatedPrice } from '@/components/ui/AnimatedPrice'
 import { ModelViewer3D } from '@/components/product/ModelViewer3D'
+import { ProductGallery } from '@/components/product/ProductGallery'
 import { useStore } from '@/lib/store/useStore'
 
 export function ProductDetail({ product }: { product: Product }) {
@@ -16,15 +16,12 @@ export function ProductDetail({ product }: { product: Product }) {
   const [added, setAdded] = useState(false)
   const [qty, setQty] = useState(1)
   const [tab, setTab] = useState<'images' | '3d'>('images')
-  const [imgError, setImgError] = useState(false)
 
   function handleAdd() {
     for (let i = 0; i < qty; i++) add(product)
     setAdded(true)
     setTimeout(() => setAdded(false), 2000)
   }
-
-  const mainImage = !imgError && product.images?.[0]
 
   return (
     <div className="max-w-7xl mx-auto px-6 mt-8">
@@ -47,21 +44,13 @@ export function ProductDetail({ product }: { product: Product }) {
           </div>
 
           {tab === 'images' ? (
-            <div
-              className="rounded-xl flex items-center justify-center min-h-[360px] relative overflow-hidden"
-              style={{ background: `linear-gradient(135deg, ${product.brandColor}15, ${product.brandColor}08)` }}
-            >
-              {mainImage ? (
-                <Image
-                  src={mainImage}
-                  alt={product.name}
-                  width={400}
-                  height={360}
-                  className="object-contain max-h-[320px] w-auto"
-                  onError={() => setImgError(true)}
-                  unoptimized
-                />
-              ) : (
+            product.images.length > 0 ? (
+              <ProductGallery images={product.images} alt={product.name} />
+            ) : (
+              <div
+                className="rounded-xl flex items-center justify-center min-h-[360px]"
+                style={{ background: `linear-gradient(135deg, ${product.brandColor}15, ${product.brandColor}08)` }}
+              >
                 <svg width="220" height="220" viewBox="0 0 120 120" fill="none">
                   <rect x="15" y="40" width="90" height="50" rx="6" fill={product.brandColor} fillOpacity="0.2" stroke={product.brandColor} strokeOpacity="0.35" strokeWidth="1.5"/>
                   <rect x="25" y="20" width="70" height="24" rx="4" fill={product.brandColor} fillOpacity="0.12" stroke={product.brandColor} strokeOpacity="0.3" strokeWidth="1.5"/>
@@ -71,8 +60,8 @@ export function ProductDetail({ product }: { product: Product }) {
                   <rect x="40" y="82" width="40" height="8" rx="2" fill={product.brandColor} fillOpacity="0.3"/>
                   <circle cx="88" cy="60" r="5" fill={product.brandColor} fillOpacity="0.45"/>
                 </svg>
-              )}
-            </div>
+              </div>
+            )
           ) : (
             <ModelViewer3D src="" alt={product.name} />
           )}

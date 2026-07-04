@@ -1,10 +1,14 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
+import { useRouter } from 'next/navigation'
+import { useForm } from 'react-hook-form'
+import { zodResolver } from '@hookform/resolvers/zod'
+import { z } from 'zod'
 import { useStore, useCartTotal } from '@/lib/store/useStore'
 import { formatPrice } from '@/lib/utils'
 import dynamic from 'next/dynamic'
-import type { CartItem } from '@/lib/types'
+import type { CartItem } from '@/lib/store/useStore'
 import { useSession } from 'next-auth/react'
 import { motion, AnimatePresence } from 'framer-motion'
 
@@ -31,63 +35,87 @@ const SPEI_INFO = {
   concepto: 'Pago pedido PrintMax',
 }
 
-interface FormState {
-  nombre: string; email: string; telefono: string
-  direccion: string; ciudad: string; estado: string; cp: string
-  paymentMethod: string
-}
+// ── Zod schema ────────────────────────────────────────────────────────────────
+const checkoutSchema = z.object({
+  nombre: z.string().min(2, 'El nombre debe tener al menos 2 caracteres'),
+  email: z.string().email('Ingresa un email válido'),
+  telefono: z.string().regex(/^(\+?[\d\s\-()]{7,15})?$/, 'Teléfono inválido').optional().or(z.literal('')),
+  cp: z.string().regex(/^(\d{5})?$/, 'Código postal: 5 dígitos').optional().or(z.literal('')),
+  direccion: z.string().optional(),
+  ciudad: z.string().optional(),
+  estado: z.string().optional(),
+  paymentMethod: z.enum(['paypal', 'spei', 'manual']),
+})
+
+type CheckoutForm = z.infer<typeof checkoutSchema>
 
 interface OrderResult { orderNumber: string; id: string }
 
+function FieldError({ msg }: { msg?: string }) {
+  if (!msg) return null
+  return <p className="text-xs text-red-500 mt-0.5">{msg}</p>
+}
+
 export default function CheckoutPage() {
   const { data: session } = useSession()
+  const router = useRouter()
   const items = useStore(s => s.items)
   const tieneFactura = useStore(s => s.tieneFactura)
   const getPrecio = useStore(s => s.getPrecio)
   const clear = useStore(s => s.clear)
   const total = useCartTotal()
 
+  useEffect(() => {
+    if (items.length === 0) router.replace('/carrito')
+  }, [items.length, router])
+
   const [done, setDone] = useState(false)
   const [saving, setSaving] = useState(false)
   const [orderResult, setOrderResult] = useState<OrderResult | null>(null)
   const [snapshotItems, setSnapshotItems] = useState<CartItem[]>([])
-  const [form, setForm] = useState<FormState>({
-    nombre: session?.user?.name ?? '',
-    email: session?.user?.email ?? '',
-    telefono: '', direccion: '', ciudad: '', estado: '', cp: '',
-    paymentMethod: 'paypal',
+
+  const {
+    register,
+    handleSubmit,
+    watch,
+    setValue,
+    formState: { errors },
+  } = useForm<CheckoutForm>({
+    resolver: zodResolver(checkoutSchema),
+    defaultValues: {
+      nombre: session?.user?.name ?? '',
+      email: session?.user?.email ?? '',
+      telefono: '',
+      cp: '',
+      direccion: '',
+      ciudad: '',
+      estado: '',
+      paymentMethod: 'paypal',
+    },
   })
+
+  const paymentMethod = watch('paymentMethod')
+  const nombre = watch('nombre')
+  const email = watch('email')
 
   const shipping = total >= 800 ? 0 : 150
   const grandTotal = total + shipping
 
-  function field(key: keyof FormState) {
-    return {
-      value: form[key],
-      onChange: (e: React.ChangeEvent<HTMLInputElement>) =>
-        setForm(f => ({ ...f, [key]: e.target.value })),
-    }
-  }
-
-  async function saveOrder(paypalOrderId?: string) {
-    if (!form.nombre || !form.email) {
-      alert('Por favor completa tu nombre y email.')
-      return false
-    }
+  async function saveOrder(formData: CheckoutForm, paypalOrderId?: string) {
     setSaving(true)
     try {
       const res = await fetch('/api/ordenes', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          clientName: form.nombre,
-          clientEmail: form.email,
-          clientPhone: form.telefono || null,
-          clientAddress: form.direccion || null,
-          clientCity: form.ciudad || null,
-          clientState: form.estado || null,
-          clientZip: form.cp || null,
-          paymentMethod: form.paymentMethod,
+          clientName: formData.nombre,
+          clientEmail: formData.email,
+          clientPhone: formData.telefono || null,
+          clientAddress: formData.direccion || null,
+          clientCity: formData.ciudad || null,
+          clientState: formData.estado || null,
+          clientZip: formData.cp || null,
+          paymentMethod: formData.paymentMethod,
           tieneFactura,
           subtotal: total,
           shipping,
@@ -116,14 +144,14 @@ export default function CheckoutPage() {
     }
   }
 
-  function buildWhatsAppMessage(orderNum: string) {
+  function buildWhatsAppMessage(formData: CheckoutForm, orderNum: string) {
     const lines = [
       `*Nuevo pedido PrintMax — ${orderNum}*`,
       ``,
-      `*Cliente:* ${form.nombre}`,
-      `*Email:* ${form.email}`,
-      form.telefono ? `*Tel:* ${form.telefono}` : null,
-      form.direccion ? `*Dirección:* ${form.direccion}, ${form.ciudad} ${form.cp}` : null,
+      `*Cliente:* ${formData.nombre}`,
+      `*Email:* ${formData.email}`,
+      formData.telefono ? `*Tel:* ${formData.telefono}` : null,
+      formData.direccion ? `*Dirección:* ${formData.direccion}, ${formData.ciudad} ${formData.cp}` : null,
       ``,
       `*Productos:*`,
       ...items.map(({ product, quantity }) =>
@@ -138,10 +166,11 @@ export default function CheckoutPage() {
     return encodeURIComponent(lines.join('\n'))
   }
 
-  // ── Success screen ────────────────────────────────────────────────────────
+  // ── Success screen ────────────────────────────────────────────────────────────
   if (done && orderResult) {
-    const isWhatsApp = form.paymentMethod === 'manual'
-    const isSPEI = form.paymentMethod === 'spei'
+    const isWhatsApp = paymentMethod === 'manual'
+    const isSPEI = paymentMethod === 'spei'
+    const formSnap = { nombre, email, telefono: watch('telefono'), direccion: watch('direccion'), ciudad: watch('ciudad'), cp: watch('cp'), estado: watch('estado'), paymentMethod }
 
     return (
       <motion.div
@@ -160,7 +189,7 @@ export default function CheckoutPage() {
             <p className="font-bold text-gray-900">Siguiente paso:</p>
             <p className="text-sm text-gray-600">Envía tu pedido por WhatsApp para coordinar la entrega y pago.</p>
             <a
-              href={`https://wa.me/${process.env.NEXT_PUBLIC_WHATSAPP_NUMBER ?? '521XXXXXXXXXX'}?text=${buildWhatsAppMessage(orderResult.orderNumber)}`}
+              href={`https://wa.me/${process.env.NEXT_PUBLIC_WHATSAPP_NUMBER ?? '521XXXXXXXXXX'}?text=${buildWhatsAppMessage(formSnap as CheckoutForm, orderResult.orderNumber)}`}
               target="_blank"
               rel="noopener noreferrer"
               className="flex items-center justify-center gap-2 w-full h-12 rounded-full bg-[#25D366] text-white font-bold text-sm hover:bg-[#20BA5A] transition-colors"
@@ -196,8 +225,8 @@ export default function CheckoutPage() {
 
         <DownloadReceiptButton
           orderNumber={orderResult.orderNumber}
-          clientName={form.nombre}
-          clientEmail={form.email}
+          clientName={nombre}
+          clientEmail={email}
           items={snapshotItems}
           tieneFactura={tieneFactura}
         />
@@ -208,7 +237,12 @@ export default function CheckoutPage() {
     )
   }
 
-  // ── Checkout form ─────────────────────────────────────────────────────────
+  // ── Checkout form ─────────────────────────────────────────────────────────────
+  const inputCls = (hasError?: boolean) =>
+    `w-full h-10 border rounded-lg px-3 text-sm outline-none transition-all ${
+      hasError ? 'border-red-400 focus:border-red-500' : 'border-gray-200 focus:border-[#1852D9]'
+    }`
+
   return (
     <div className="max-w-5xl mx-auto px-6 mt-8">
       <h1 className="text-3xl font-extrabold text-gray-900 mb-7">Checkout</h1>
@@ -221,31 +255,35 @@ export default function CheckoutPage() {
             <div className="grid grid-cols-2 gap-4">
               <div>
                 <label className="text-xs font-semibold text-gray-500 mb-1 block">Nombre *</label>
-                <input {...field('nombre')} className="w-full h-10 border border-gray-200 rounded-lg px-3 text-sm outline-none focus:border-[#1852D9] transition-all" />
+                <input {...register('nombre')} className={inputCls(!!errors.nombre)} />
+                <FieldError msg={errors.nombre?.message} />
               </div>
               <div>
                 <label className="text-xs font-semibold text-gray-500 mb-1 block">Email *</label>
-                <input type="email" {...field('email')} className="w-full h-10 border border-gray-200 rounded-lg px-3 text-sm outline-none focus:border-[#1852D9] transition-all" />
+                <input type="email" {...register('email')} className={inputCls(!!errors.email)} />
+                <FieldError msg={errors.email?.message} />
               </div>
               <div>
                 <label className="text-xs font-semibold text-gray-500 mb-1 block">Teléfono</label>
-                <input type="tel" {...field('telefono')} placeholder="55 1234 5678" className="w-full h-10 border border-gray-200 rounded-lg px-3 text-sm outline-none focus:border-[#1852D9] transition-all" />
+                <input type="tel" {...register('telefono')} placeholder="55 1234 5678" className={inputCls(!!errors.telefono)} />
+                <FieldError msg={errors.telefono?.message} />
               </div>
               <div>
                 <label className="text-xs font-semibold text-gray-500 mb-1 block">Código Postal</label>
-                <input {...field('cp')} placeholder="06600" className="w-full h-10 border border-gray-200 rounded-lg px-3 text-sm outline-none focus:border-[#1852D9] transition-all" />
+                <input {...register('cp')} placeholder="06600" className={inputCls(!!errors.cp)} maxLength={5} />
+                <FieldError msg={errors.cp?.message} />
               </div>
               <div className="col-span-2">
                 <label className="text-xs font-semibold text-gray-500 mb-1 block">Dirección</label>
-                <input {...field('direccion')} placeholder="Calle, número, colonia" className="w-full h-10 border border-gray-200 rounded-lg px-3 text-sm outline-none focus:border-[#1852D9] transition-all" />
+                <input {...register('direccion')} placeholder="Calle, número, colonia" className={inputCls()} />
               </div>
               <div>
                 <label className="text-xs font-semibold text-gray-500 mb-1 block">Ciudad</label>
-                <input {...field('ciudad')} placeholder="Ciudad de México" className="w-full h-10 border border-gray-200 rounded-lg px-3 text-sm outline-none focus:border-[#1852D9] transition-all" />
+                <input {...register('ciudad')} placeholder="Ciudad de México" className={inputCls()} />
               </div>
               <div>
                 <label className="text-xs font-semibold text-gray-500 mb-1 block">Estado</label>
-                <input {...field('estado')} placeholder="CDMX" className="w-full h-10 border border-gray-200 rounded-lg px-3 text-sm outline-none focus:border-[#1852D9] transition-all" />
+                <input {...register('estado')} placeholder="CDMX" className={inputCls()} />
               </div>
             </div>
           </div>
@@ -258,26 +296,20 @@ export default function CheckoutPage() {
                 <label
                   key={id}
                   className={`flex flex-col items-center gap-2 border rounded-xl p-4 cursor-pointer transition-colors ${
-                    form.paymentMethod === id ? 'border-[#1852D9] bg-blue-50' : 'border-gray-200 hover:border-[#1852D9]'
+                    paymentMethod === id ? 'border-[#1852D9] bg-blue-50' : 'border-gray-200 hover:border-[#1852D9]'
                   }`}
                 >
-                  <input type="radio" name="payment" value={id} checked={form.paymentMethod === id}
-                    onChange={e => setForm(f => ({ ...f, paymentMethod: e.target.value }))} className="sr-only" />
+                  <input type="radio" {...register('paymentMethod')} value={id} className="sr-only" />
                   <span className="text-2xl">{icon}</span>
                   <span className="text-xs font-semibold text-gray-700">{label}</span>
                 </label>
               ))}
             </div>
 
-            {/* SPEI info preview */}
             <AnimatePresence>
-              {form.paymentMethod === 'spei' && (
-                <motion.div
-                  initial={{ opacity: 0, height: 0 }}
-                  animate={{ opacity: 1, height: 'auto' }}
-                  exit={{ opacity: 0, height: 0 }}
-                  className="bg-blue-50 rounded-xl p-4 text-sm space-y-2"
-                >
+              {paymentMethod === 'spei' && (
+                <motion.div initial={{ opacity: 0, height: 0 }} animate={{ opacity: 1, height: 'auto' }} exit={{ opacity: 0, height: 0 }}
+                  className="bg-blue-50 rounded-xl p-4 text-sm space-y-2">
                   <p className="font-bold text-gray-800 text-xs uppercase tracking-wide mb-2">Datos de transferencia</p>
                   {Object.entries(SPEI_INFO).map(([k, v]) => (
                     <div key={k} className="flex justify-between">
@@ -287,13 +319,9 @@ export default function CheckoutPage() {
                   ))}
                 </motion.div>
               )}
-              {form.paymentMethod === 'manual' && (
-                <motion.div
-                  initial={{ opacity: 0, height: 0 }}
-                  animate={{ opacity: 1, height: 'auto' }}
-                  exit={{ opacity: 0, height: 0 }}
-                  className="bg-green-50 rounded-xl p-4 text-sm text-gray-600"
-                >
+              {paymentMethod === 'manual' && (
+                <motion.div initial={{ opacity: 0, height: 0 }} animate={{ opacity: 1, height: 'auto' }} exit={{ opacity: 0, height: 0 }}
+                  className="bg-green-50 rounded-xl p-4 text-sm text-gray-600">
                   Se registrará tu pedido y recibirás un mensaje de WhatsApp para coordinar el pago y la entrega.
                 </motion.div>
               )}
@@ -301,15 +329,17 @@ export default function CheckoutPage() {
           </div>
 
           {/* PayPal */}
-          {form.paymentMethod === 'paypal' && (
+          {paymentMethod === 'paypal' && (
             <div className="bg-white rounded-xl border border-gray-100 p-6">
               <h3 className="font-bold text-gray-900 mb-4">Pagar con PayPal</h3>
-              {(!form.nombre || !form.email) ? (
+              {(!nombre || !email) ? (
                 <p className="text-sm text-gray-400">Completa tu nombre y email para continuar.</p>
               ) : (
                 <PayPalButton
                   amount={grandTotal.toFixed(2)}
-                  onSuccess={async (paypalId) => { await saveOrder(paypalId) }}
+                  onSuccess={async (paypalId) => {
+                    handleSubmit(data => saveOrder(data, paypalId))()
+                  }}
                   onError={() => alert('Error al procesar el pago con PayPal. Intenta de nuevo.')}
                 />
               )}
@@ -350,14 +380,13 @@ export default function CheckoutPage() {
             <p className="text-xs text-gray-400">{tieneFactura ? 'Con factura (IVA incluido)' : 'Sin factura (precio neto)'}</p>
           </div>
 
-          {/* Confirm button — only for SPEI and WhatsApp (PayPal has its own button) */}
-          {form.paymentMethod !== 'paypal' && (
+          {paymentMethod !== 'paypal' && (
             <button
-              onClick={() => saveOrder()}
+              onClick={handleSubmit(data => saveOrder(data))}
               disabled={saving || items.length === 0}
               className="mt-5 w-full h-12 rounded-full bg-[#FF5722] text-white font-bold text-sm flex items-center justify-center gap-2 hover:bg-[#E64A19] transition-colors shadow-[0_4px_16px_rgba(255,87,34,.35)] disabled:opacity-60 disabled:cursor-not-allowed"
             >
-              {saving ? 'Procesando…' : form.paymentMethod === 'manual' ? '📱 Confirmar y abrir WhatsApp' : '🏦 Confirmar y obtener CLABE'}
+              {saving ? 'Procesando…' : paymentMethod === 'manual' ? '📱 Confirmar y abrir WhatsApp' : '🏦 Confirmar y obtener CLABE'}
             </button>
           )}
         </div>

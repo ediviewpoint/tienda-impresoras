@@ -1,5 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { prisma } from '@/lib/db'
+import { getResend, FROM, ADMIN_EMAIL } from '@/lib/email'
+import OrderConfirmation from '@/emails/OrderConfirmation'
+import AdminNewOrder from '@/emails/AdminNewOrder'
 
 function generateOrderNumber() {
   const date = new Date()
@@ -43,11 +46,8 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: 'El pedido debe tener al menos un producto' }, { status: 400 })
   }
 
-  // Verify products exist and calculate totals
   const productIds: string[] = body.items.map((i: { productId: string }) => i.productId)
-  const products = await prisma.product.findMany({
-    where: { id: { in: productIds } },
-  })
+  const products = await prisma.product.findMany({ where: { id: { in: productIds } } })
   if (products.length !== productIds.length) {
     return NextResponse.json({ error: 'Uno o más productos no existen' }, { status: 400 })
   }
@@ -90,6 +90,46 @@ export async function POST(req: NextRequest) {
     },
     include: { items: { include: { product: true } } },
   })
+
+  // Emails — fire and forget (no bloquea la respuesta)
+  if (process.env.RESEND_API_KEY) {
+    const emailItems = order.items.map(i => ({
+      name: i.product.name,
+      quantity: i.quantity,
+      unitPrice: i.unitPrice,
+      total: i.total,
+    }))
+
+    getResend().emails.send({
+      from: FROM,
+      to: order.clientEmail,
+      subject: `Tu pedido ${order.orderNumber} ha sido recibido — PrintMax`,
+      react: OrderConfirmation({
+        orderNumber: order.orderNumber,
+        clientName: order.clientName,
+        items: emailItems,
+        subtotal: order.subtotal,
+        shipping: order.shipping,
+        total: order.total,
+        tieneFactura: order.tieneFactura,
+        paymentMethod: order.paymentMethod,
+      }),
+    })
+
+    getResend().emails.send({
+      from: FROM,
+      to: ADMIN_EMAIL,
+      subject: `🛒 Nuevo pedido ${order.orderNumber} — ${order.clientName}`,
+      react: AdminNewOrder({
+        orderNumber: order.orderNumber,
+        clientName: order.clientName,
+        clientEmail: order.clientEmail,
+        total: order.total,
+        paymentMethod: order.paymentMethod,
+        itemCount: order.items.length,
+      }),
+    })
+  }
 
   return NextResponse.json({ order }, { status: 201 })
 }

@@ -2,11 +2,12 @@
 
 import { useState } from 'react'
 import { formatPrice } from '@/lib/utils'
-import type { Product, Order, OrderItem } from '@/lib/generated/prisma/client'
+import type { Brand, Category, Product, ProductImage, Order, OrderItem } from '@/lib/generated/prisma/client'
 import AdminProducts from './AdminProducts'
 import AdminOrders from './AdminOrders'
 
 type RecentOrder = Order & { items: OrderItem[] }
+type FullProduct = Product & { brand: Brand; category: Category; images: ProductImage[] }
 
 interface Stats {
   products: number
@@ -17,7 +18,7 @@ interface Stats {
 
 interface Props {
   stats: Stats
-  initialProducts: Product[]
+  initialProducts: FullProduct[]
 }
 
 type Tab = 'dashboard' | 'productos' | 'ordenes'

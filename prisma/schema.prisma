@@ -4,31 +4,76 @@ generator client {
 }
 
 datasource db {
-  provider  = "postgresql"
-  directUrl = env("DATABASE_URL_UNPOOLED")
+  provider = "postgresql"
+}
+
+model Brand {
+  id       String    @id @default(cuid())
+  name     String    @unique
+  slug     String    @unique
+  color    String    @default("#1852D9")
+  logo     String?
+  products Product[]
+}
+
+model Category {
+  id          String    @id @default(cuid())
+  name        String    @unique
+  slug        String    @unique
+  description String?
+  image       String?
+  products    Product[]
 }
 
 model Product {
-  id            String      @id @default(cuid())
-  slug          String      @unique
+  id            String         @id @default(cuid())
+  slug          String         @unique
   name          String
-  brand         String
-  brandColor    String      @default("#1852D9")
   price         Float
   originalPrice Float?
-  rating        Float       @default(5)
-  reviewCount   Int         @default(0)
-  badge         String?     // "new" | "sale" | "hot" | "best"
-  category      String      // "laser" | "inkjet" | "multifuncional" | "3d" | "toner" | "papel" | "accesorios"
+  rating        Float          @default(5)
+  reviewCount   Int            @default(0)
+  badge         String?
   description   String
-  features      String      // JSON array serializado
-  image         String?
-  inStock       Boolean     @default(true)
-  sku           String      @unique
-  active        Boolean     @default(true)
-  createdAt     DateTime    @default(now())
-  updatedAt     DateTime    @updatedAt
-  orderItems    OrderItem[]
+  features      String
+  inStock       Boolean        @default(true)
+  sku           String         @unique
+  active        Boolean        @default(true)
+  createdAt     DateTime       @default(now())
+  updatedAt     DateTime       @updatedAt
+
+  brandId    String
+  brand      Brand    @relation(fields: [brandId], references: [id])
+
+  categoryId String
+  category   Category @relation(fields: [categoryId], references: [id])
+
+  images     ProductImage[]
+  reviews    Review[]
+  orderItems OrderItem[]
+}
+
+model ProductImage {
+  id        String  @id @default(cuid())
+  url       String
+  order     Int     @default(0)
+  productId String
+  product   Product @relation(fields: [productId], references: [id], onDelete: Cascade)
+}
+
+model Review {
+  id        String   @id @default(cuid())
+  rating    Int
+  body      String?
+  createdAt DateTime @default(now())
+
+  productId String
+  product   Product @relation(fields: [productId], references: [id], onDelete: Cascade)
+
+  userId String
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([productId, userId])
 }
 
 model User {
@@ -43,6 +88,7 @@ model User {
   accounts      Account[]
   sessions      Session[]
   orders        Order[]
+  reviews       Review[]
 }
 
 model Account {
@@ -84,14 +130,13 @@ model VerificationToken {
 model Order {
   id            String      @id @default(cuid())
   orderNumber   String      @unique
-  status        String      @default("pendiente")  // pendiente | confirmado | enviado | entregado | cancelado
+  status        String      @default("pendiente")
   tieneFactura  Boolean     @default(true)
   subtotal      Float
   shipping      Float       @default(0)
   total         Float
-  paymentMethod String      @default("manual")     // manual | paypal | spei | efectivo
+  paymentMethod String      @default("manual")
   notes         String?
-  // Datos del cliente
   clientName    String
   clientEmail   String
   clientPhone   String?
