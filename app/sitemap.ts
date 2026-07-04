@@ -1,6 +1,8 @@
 import { MetadataRoute } from 'next'
 import { prisma } from '@/lib/db'
 
+export const dynamic = 'force-dynamic'
+
 const BASE = 'https://printmax.mx'
 
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
