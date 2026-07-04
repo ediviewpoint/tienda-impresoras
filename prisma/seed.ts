@@ -8,10 +8,11 @@ function createPrisma() {
     const adapter = new PrismaBetterSqlite3({ url: url || 'file:./dev.db' })
     return new PrismaClient({ adapter })
   }
-  const { Pool } = require('@neondatabase/serverless')
+  const { neonConfig } = require('@neondatabase/serverless')
   const { PrismaNeon } = require('@prisma/adapter-neon')
-  const pool = new Pool({ connectionString: url })
-  const adapter = new PrismaNeon(pool)
+  const ws = require('ws')
+  neonConfig.webSocketConstructor = ws
+  const adapter = new PrismaNeon({ connectionString: url })
   return new PrismaClient({ adapter })
 }
 

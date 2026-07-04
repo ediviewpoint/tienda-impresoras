@@ -10,11 +10,13 @@ function createPrisma() {
     return new PrismaClient({ adapter })
   }
 
-  // Production — Neon PostgreSQL
-  const { Pool } = require('@neondatabase/serverless')
+  // Production — Neon PostgreSQL via WebSocket
+  // In Prisma v7, PrismaNeon takes config directly (not a Pool instance)
+  const { neonConfig } = require('@neondatabase/serverless')
   const { PrismaNeon } = require('@prisma/adapter-neon')
-  const pool = new Pool({ connectionString: url })
-  const adapter = new PrismaNeon(pool)
+  const ws = require('ws')
+  neonConfig.webSocketConstructor = ws
+  const adapter = new PrismaNeon({ connectionString: url })
   return new PrismaClient({ adapter })
 }
 
