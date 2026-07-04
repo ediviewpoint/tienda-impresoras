@@ -69,7 +69,9 @@ export default function CheckoutPage() {
   useEffect(() => { setHydrated(true) }, [])
   useEffect(() => {
     if (hydrated && items.length === 0) router.replace('/carrito')
-  }, [hydrated, items.length, router])
+    // router is stable in Next.js App Router — intentionally omitted from deps
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [hydrated, items.length])
 
   const [done, setDone] = useState(false)
   const [saving, setSaving] = useState(false)

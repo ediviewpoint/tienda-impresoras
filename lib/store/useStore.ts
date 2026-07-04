@@ -77,7 +77,6 @@ export const useStore = create<StoreState>()(
     {
       name: 'printmax-store',
       partialize: state => ({ items: state.items, tieneFactura: state.tieneFactura }),
-      skipHydration: true,
     }
   )
 )
@@ -88,4 +87,8 @@ export const useCartTotal  = () => useStore(s => {
   const { items, getPrecio } = s
   return items.reduce((t, i) => t + getPrecio(i.product.price) * i.quantity, 0)
 })
-export const useTieneFactura = () => useStore(s => ({ tieneFactura: s.tieneFactura, setTieneFactura: s.setTieneFactura }))
+export const useTieneFactura = () => {
+  const tieneFactura = useStore(s => s.tieneFactura)
+  const setTieneFactura = useStore(s => s.setTieneFactura)
+  return { tieneFactura, setTieneFactura }
+}
