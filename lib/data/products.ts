@@ -1,0 +1,176 @@
+import { Product, Category } from '@/lib/types'
+
+export const categories: Category[] = [
+  { id: 'laser',         label: 'Láser',          count: 142, color: '#1852D9', bgColor: '#EEF3FD' },
+  { id: 'inkjet',        label: 'Inkjet',          count: 98,  color: '#FF5722', bgColor: '#FFF3EE' },
+  { id: 'multifuncional',label: 'Multifuncional',  count: 76,  color: '#16A34A', bgColor: '#EDFDF6' },
+  { id: '3d',            label: 'Impresión 3D',    count: 34,  color: '#7C3AED', bgColor: '#F3EEFE' },
+  { id: 'toner',         label: 'Tóner',           count: 215, color: '#F59E0B', bgColor: '#FFF8E1' },
+  { id: 'papel',         label: 'Papel',           count: 52,  color: '#EF4444', bgColor: '#FFF0F0' },
+]
+
+export const products: Product[] = [
+  {
+    id: '1',
+    slug: 'hp-laserjet-pro-4001dn',
+    name: 'HP LaserJet Pro 4001dn Monocromática',
+    brand: 'HP',
+    brandColor: '#1852D9',
+    price: 4299,
+    originalPrice: 5999,
+    rating: 5,
+    reviewCount: 248,
+    badge: 'best',
+    category: 'laser',
+    description: 'Impresora láser profesional monocromática con conectividad Ethernet y doble cara automática.',
+    features: ['40 ppm', 'Ethernet + USB', 'Doble cara auto', '250 hojas', '3 años garantía'],
+    images: [],
+    inStock: true,
+    sku: 'HP-LJ4001DN',
+  },
+  {
+    id: '2',
+    slug: 'epson-ecotank-l3250',
+    name: 'Epson EcoTank L3250 Multifuncional Color WiFi',
+    brand: 'Epson',
+    brandColor: '#FF5722',
+    price: 3599,
+    originalPrice: 4200,
+    rating: 4,
+    reviewCount: 183,
+    badge: 'new',
+    category: 'multifuncional',
+    description: 'Sistema de tinta continua con depósitos recargables. Imprime, copia y escanea con WiFi integrado.',
+    features: ['WiFi + USB', 'Imprime, copia, escanea', '33 ppm negro', '5760 dpi', 'Tinta recargable'],
+    images: [],
+    inStock: true,
+    sku: 'EPS-L3250',
+  },
+  {
+    id: '3',
+    slug: 'canon-pixma-g3160',
+    name: 'Canon PIXMA G3160 Multifuncional Megatank WiFi',
+    brand: 'Canon',
+    brandColor: '#16A34A',
+    price: 2899,
+    originalPrice: 3800,
+    rating: 5,
+    reviewCount: 312,
+    badge: 'sale',
+    category: 'multifuncional',
+    description: 'Impresora Megatank de bajo costo por página con WiFi y pantalla LCD.',
+    features: ['WiFi + USB', 'LCD integrado', 'Impresión a color', '4800 dpi', 'Tinta recargable'],
+    images: [],
+    inStock: true,
+    sku: 'CAN-G3160',
+  },
+  {
+    id: '4',
+    slug: 'bambu-lab-a1-mini-combo',
+    name: 'Bambu Lab A1 Mini Combo 3D Printer + AMS Lite',
+    brand: 'Bambu Lab',
+    brandColor: '#7C3AED',
+    price: 12499,
+    originalPrice: 14000,
+    rating: 5,
+    reviewCount: 97,
+    badge: 'hot',
+    category: '3d',
+    description: 'Impresora 3D de alta velocidad multicolor con sistema AMS Lite incluido.',
+    features: ['4 colores simultáneos', '500 mm/s', 'WiFi + LAN', 'Auto-nivelación', 'Cámara integrada'],
+    images: [],
+    inStock: true,
+    sku: 'BAM-A1MINI',
+  },
+  {
+    id: '5',
+    slug: 'brother-hl-l2350dw',
+    name: 'Brother HL-L2350DW Láser Inalámbrica Doble Cara',
+    brand: 'Brother',
+    brandColor: '#1852D9',
+    price: 3199,
+    originalPrice: 3900,
+    rating: 4,
+    reviewCount: 156,
+    badge: 'sale',
+    category: 'laser',
+    description: 'Impresora láser monocromática inalámbrica con doble cara automática para hogar y oficina.',
+    features: ['32 ppm', 'WiFi + USB', 'Doble cara auto', '250 hojas', 'Mobile print'],
+    images: [],
+    inStock: true,
+    sku: 'BRO-L2350DW',
+  },
+  {
+    id: '6',
+    slug: 'hp-deskjet-2775',
+    name: 'HP DeskJet 2775 Multifuncional Inalámbrica',
+    brand: 'HP',
+    brandColor: '#1852D9',
+    price: 1299,
+    originalPrice: 1700,
+    rating: 4,
+    reviewCount: 421,
+    badge: 'best',
+    category: 'inkjet',
+    description: 'Impresora multifuncional inalámbrica ideal para el hogar. Imprime, copia y escanea.',
+    features: ['WiFi + USB', 'Imprime, copia, escanea', '7.5 ppm color', '4800 dpi', 'HP Smart App'],
+    images: [],
+    inStock: true,
+    sku: 'HP-DJ2775',
+  },
+  {
+    id: '7',
+    slug: 'xerox-b210',
+    name: 'Xerox B210 Láser Monocromática WiFi',
+    brand: 'Xerox',
+    brandColor: '#1852D9',
+    price: 2499,
+    originalPrice: 3100,
+    rating: 4,
+    reviewCount: 88,
+    badge: 'new',
+    category: 'laser',
+    description: 'Impresora láser compacta con WiFi directo, impresión móvil y alta capacidad de papel.',
+    features: ['31 ppm', 'WiFi Direct', '251 hojas', 'Mobile print', 'USB 2.0'],
+    images: [],
+    inStock: true,
+    sku: 'XER-B210',
+  },
+  {
+    id: '8',
+    slug: 'creality-ender-3-v3',
+    name: 'Creality Ender 3 V3 SE Impresora 3D FDM',
+    brand: 'Creality',
+    brandColor: '#7C3AED',
+    price: 4899,
+    originalPrice: 5500,
+    rating: 4,
+    reviewCount: 134,
+    badge: 'sale',
+    category: '3d',
+    description: 'Impresora 3D FDM de entrada de alta calidad con auto-nivelación CR Touch y pantalla táctil.',
+    features: ['250mm/s', 'Auto-nivelación', 'Pantalla táctil', 'Marco metálico', 'Fácil montaje'],
+    images: [],
+    inStock: true,
+    sku: 'CRE-E3V3SE',
+  },
+]
+
+export const brands = ['HP', 'Canon', 'Epson', 'Brother', 'Xerox', 'Lexmark', 'Bambu Lab', 'Creality']
+
+export function getProductBySlug(slug: string): Product | undefined {
+  return products.find(p => p.slug === slug)
+}
+
+export function getProductsByCategory(category: string): Product[] {
+  return products.filter(p => p.category === category)
+}
+
+export function getFeaturedProducts(limit = 4): Product[] {
+  return products.slice(0, limit)
+}
+
+export function discountPercent(price: number, original?: number): number {
+  if (!original) return 0
+  return Math.round((1 - price / original) * 100)
+}
