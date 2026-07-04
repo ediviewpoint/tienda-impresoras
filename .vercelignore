@@ -1,0 +1,8 @@
+.env
+.env.neon
+.env.local
+*.db
+*.db-journal
+scripts/
+node_modules/
+lib/generated/prisma/
