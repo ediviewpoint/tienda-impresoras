@@ -1,21 +1,38 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { prisma } from '@/lib/db'
+import { requireSession, requireAdmin, isAdmin } from '@/lib/auth-guards'
 
 type Params = { params: Promise<{ id: string }> }
 
 const VALID_STATUSES = ['pendiente', 'confirmado', 'enviado', 'entregado', 'cancelado']
 
 export async function GET(_req: NextRequest, { params }: Params) {
+  const { session, authError } = await requireSession()
+  if (authError) return authError
+
   const { id } = await params
   const order = await prisma.order.findUnique({
     where: { id },
     include: { items: { include: { product: true } } },
   })
   if (!order) return NextResponse.json({ error: 'Orden no encontrada' }, { status: 404 })
+
+  // Admin ve cualquier orden; usuario solo ve las suyas
+  const isOwner =
+    (order.userId && order.userId === session!.user.id) ||
+    order.clientEmail === session!.user.email
+
+  if (!isAdmin(session!.user.email) && !isOwner) {
+    return NextResponse.json({ error: 'No autorizado' }, { status: 403 })
+  }
+
   return NextResponse.json({ order })
 }
 
 export async function PATCH(req: NextRequest, { params }: Params) {
+  const { adminError } = await requireAdmin()
+  if (adminError) return adminError
+
   const { id } = await params
   const body = await req.json()
 
@@ -48,6 +65,9 @@ export async function PATCH(req: NextRequest, { params }: Params) {
 }
 
 export async function DELETE(_req: NextRequest, { params }: Params) {
+  const { adminError } = await requireAdmin()
+  if (adminError) return adminError
+
   const { id } = await params
   const existing = await prisma.order.findUnique({ where: { id } })
   if (!existing) return NextResponse.json({ error: 'Orden no encontrada' }, { status: 404 })

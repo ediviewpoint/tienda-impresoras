@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { prisma } from '@/lib/db'
 import { PRODUCT_INCLUDE } from '@/lib/db-utils'
+import { requireAdmin } from '@/lib/auth-guards'
 
 type Params = { params: Promise<{ id: string }> }
 
@@ -12,6 +13,9 @@ export async function GET(_req: NextRequest, { params }: Params) {
 }
 
 export async function PATCH(req: NextRequest, { params }: Params) {
+  const { adminError } = await requireAdmin()
+  if (adminError) return adminError
+
   const { id } = await params
   const body = await req.json()
 
@@ -71,9 +75,13 @@ export async function PATCH(req: NextRequest, { params }: Params) {
 }
 
 export async function DELETE(_req: NextRequest, { params }: Params) {
+  const { adminError } = await requireAdmin()
+  if (adminError) return adminError
+
   const { id } = await params
   const existing = await prisma.product.findUnique({ where: { id } })
   if (!existing) return NextResponse.json({ error: 'Producto no encontrado' }, { status: 404 })
+
   await prisma.product.delete({ where: { id } })
   return NextResponse.json({ success: true })
 }

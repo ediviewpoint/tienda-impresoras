@@ -3,6 +3,7 @@ import { prisma } from '@/lib/db'
 import { getResend, FROM, ADMIN_EMAIL } from '@/lib/email'
 import OrderConfirmation from '@/emails/OrderConfirmation'
 import AdminNewOrder from '@/emails/AdminNewOrder'
+import { requireSession, isAdmin } from '@/lib/auth-guards'
 
 function generateOrderNumber() {
   const date = new Date()
@@ -12,12 +13,28 @@ function generateOrderNumber() {
 }
 
 export async function GET(req: NextRequest) {
+  const { session, authError } = await requireSession()
+  if (authError) return authError
+
   const { searchParams } = new URL(req.url)
   const status = searchParams.get('status')
-  const limit = Number(searchParams.get('limit') ?? 50)
+  const limit = Math.min(Number(searchParams.get('limit') ?? 50), 100)
   const offset = Number(searchParams.get('offset') ?? 0)
 
-  const where = status ? { status } : {}
+  // Admin ve todas las órdenes; usuario normal ve solo las suyas
+  const userWhere = isAdmin(session!.user.email)
+    ? {}
+    : {
+        OR: [
+          { userId: session!.user.id as string },
+          { clientEmail: session!.user.email as string },
+        ],
+      }
+
+  const where = {
+    ...userWhere,
+    ...(status ? { status } : {}),
+  }
 
   const [orders, total] = await Promise.all([
     prisma.order.findMany({
@@ -34,6 +51,7 @@ export async function GET(req: NextRequest) {
 }
 
 export async function POST(req: NextRequest) {
+  // El checkout es público: clientes compran sin necesidad de cuenta
   const body = await req.json()
 
   const required = ['clientName', 'clientEmail', 'items']
@@ -91,7 +109,6 @@ export async function POST(req: NextRequest) {
     include: { items: { include: { product: true } } },
   })
 
-  // Emails — fire and forget (no bloquea la respuesta)
   if (process.env.RESEND_API_KEY) {
     const emailItems = order.items.map(i => ({
       name: i.product.name,

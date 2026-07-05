@@ -1,16 +1,29 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { prisma } from '@/lib/db'
 import { PRODUCT_INCLUDE } from '@/lib/db-utils'
+import { auth } from '@/auth'
+import { requireAdmin, isAdmin } from '@/lib/auth-guards'
 
 export async function GET(req: NextRequest) {
   const { searchParams } = new URL(req.url)
   const cat = searchParams.get('cat')
   const q = searchParams.get('q')
-  const active = searchParams.get('active')
+  const activeParam = searchParams.get('active')
+
+  // Por defecto solo productos activos.
+  // El parámetro ?active=false solo lo honramos si quien pide es admin;
+  // un visitante anónimo no puede ver productos ocultos.
+  let activeFilter: boolean | undefined = true
+  if (activeParam !== null) {
+    const session = await auth()
+    if (isAdmin(session?.user?.email)) {
+      activeFilter = activeParam !== 'false'
+    }
+  }
 
   const where = {
+    active: activeFilter,
     ...(cat ? { category: { slug: cat } } : {}),
-    ...(active !== null ? { active: active !== 'false' } : {}),
     ...(q ? {
       OR: [
         { name: { contains: q } },
@@ -45,6 +58,9 @@ async function resolveCategory(categorySlug: string) {
 }
 
 export async function POST(req: NextRequest) {
+  const { adminError } = await requireAdmin()
+  if (adminError) return adminError
+
   const body = await req.json()
 
   const required = ['slug', 'name', 'brand', 'price', 'category', 'description', 'sku']
