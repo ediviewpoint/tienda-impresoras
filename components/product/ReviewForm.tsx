@@ -89,7 +89,7 @@ export function ReviewForm({ productId, initialReviews }: Props) {
                     <div>
                       <p className="text-sm font-semibold text-gray-800">{r.user.name ?? 'Anónimo'}</p>
                       <p className="text-xs text-gray-400">
-                        {new Date(r.createdAt).toLocaleDateString('es-MX', { day: '2-digit', month: 'short', year: 'numeric' })}
+                        {new Date(r.createdAt).toLocaleDateString('es-BO', { day: '2-digit', month: 'short', year: 'numeric' })}
                       </p>
                     </div>
                     <div className="ml-auto">

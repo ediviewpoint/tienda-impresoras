@@ -54,7 +54,7 @@ export function Hero() {
             <rect x="80" y="162" width="100" height="8" rx="2" fill="white" fillOpacity="0.5"/>
           </svg>
           <div className="absolute -bottom-4 left-1/2 -translate-x-1/2 bg-white text-primary text-xs font-bold px-4 py-2 rounded-full whitespace-nowrap shadow-lg">
-            desde $4,299 MXN
+            desde Bs. 3.500
           </div>
         </div>
       </div>

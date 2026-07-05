@@ -119,7 +119,7 @@ export function ProductDetail({ product }: { product: Product }) {
             <p className="text-xs text-gray-400 self-center">Compartir:</p>
             {[
               { label: 'WhatsApp', color: '#25D366', href: `https://wa.me/?text=${encodeURIComponent(product.name + ' — PrintMax')}` },
-              { label: 'Facebook', color: '#1877F2', href: `https://facebook.com/sharer/sharer.php?u=${encodeURIComponent('https://printmax.mx/producto/' + product.slug)}` },
+              { label: 'Facebook', color: '#1877F2', href: `https://facebook.com/sharer/sharer.php?u=${encodeURIComponent(`${process.env.NEXT_PUBLIC_SITE_URL ?? 'https://printmax.bo'}/producto/` + product.slug)}` },
             ].map(({ label, color, href }) => (
               <a
                 key={label}

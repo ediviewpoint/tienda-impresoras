@@ -10,5 +10,5 @@ export function getResend(): Resend {
   return _resend
 }
 
-export const FROM = 'PrintMax <no-reply@printmax.mx>'
-export const ADMIN_EMAIL = process.env.ADMIN_EMAIL ?? 'admin@printmax.mx'
+export const FROM = process.env.FROM_EMAIL ?? 'PrintMax <no-reply@printmax.bo>'
+export const ADMIN_EMAIL = process.env.ADMIN_EMAIL ?? 'admin@printmax.bo'

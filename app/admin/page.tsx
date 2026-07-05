@@ -6,7 +6,7 @@ import AdminShell from './AdminShell'
 
 export const dynamic = 'force-dynamic'
 
-const ADMIN_EMAILS = (process.env.ADMIN_EMAIL ?? 'admin@printmax.mx').split(',').map(e => e.trim())
+const ADMIN_EMAILS = (process.env.ADMIN_EMAIL ?? 'admin@printmax.bo').split(',').map(e => e.trim())
 
 export default async function AdminPage() {
   const session = await auth()
@@ -35,7 +35,7 @@ export default async function AdminPage() {
   const stats = {
     products: productCount,
     orders: orderCount,
-    revenue: revenue._sum.total ?? 0,
+    revenue: Number(revenue._sum.total ?? 0),
     recentOrders: orders,
   }
 

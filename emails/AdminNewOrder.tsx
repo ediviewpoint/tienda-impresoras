@@ -13,7 +13,7 @@ interface Props {
 }
 
 const fmt = (n: number) =>
-  new Intl.NumberFormat('es-MX', { style: 'currency', currency: 'MXN' }).format(n)
+  `Bs. ${new Intl.NumberFormat('es-BO', { maximumFractionDigits: 0 }).format(n)}`
 
 export default function AdminNewOrder({ orderNumber, clientName, clientEmail, total, paymentMethod, itemCount }: Props) {
   return (

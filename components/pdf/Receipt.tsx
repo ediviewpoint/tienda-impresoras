@@ -7,6 +7,7 @@ import {
   Font,
 } from '@react-pdf/renderer'
 import { CartItem } from '@/lib/store/useStore'
+import { FREE_SHIPPING_THRESHOLD, SHIPPING_COST } from '@/lib/utils'
 
 Font.register({
   family: 'Inter',
@@ -41,7 +42,7 @@ const s = StyleSheet.create({
 })
 
 function fmt(n: number) {
-  return new Intl.NumberFormat('es-MX', { style: 'currency', currency: 'MXN', maximumFractionDigits: 0 }).format(n)
+  return `Bs. ${new Intl.NumberFormat('es-BO', { maximumFractionDigits: 0 }).format(n)}`
 }
 
 interface ReceiptProps {
@@ -55,11 +56,13 @@ interface ReceiptProps {
 
 export function Receipt({ items, tieneFactura, getPrecio, orderNumber, clientName, clientEmail }: ReceiptProps) {
   const subtotal = items.reduce((t, i) => t + getPrecio(i.product.price) * i.quantity, 0)
-  const shipping = subtotal >= 800 ? 0 : 150
-  const iva = tieneFactura ? subtotal * 0.16 : 0
+  const shipping = subtotal >= FREE_SHIPPING_THRESHOLD ? 0 : SHIPPING_COST
+  const iva = tieneFactura ? subtotal * 0.13 : 0
   const total = subtotal + shipping
 
-  const date = new Date().toLocaleDateString('es-MX', { year: 'numeric', month: 'long', day: 'numeric' })
+  const date = new Date().toLocaleDateString('es-BO', { year: 'numeric', month: 'long', day: 'numeric' })
+  const storeNit = process.env.NEXT_PUBLIC_STORE_NIT ?? '—'
+  const storeEmail = process.env.NEXT_PUBLIC_STORE_EMAIL ?? 'info@printmax.bo'
 
   return (
     <Document>
@@ -68,8 +71,8 @@ export function Receipt({ items, tieneFactura, getPrecio, orderNumber, clientNam
         <View style={s.header}>
           <View>
             <Text style={s.logo}>PrintMax</Text>
-            <Text style={s.logoSub}>Tu tienda de impresoras · printmax.mx</Text>
-            <Text style={s.logoSub}>RFC: PMX123456ABC · printmax@email.com</Text>
+            <Text style={s.logoSub}>Tu tienda de impresoras · Bolivia</Text>
+            <Text style={s.logoSub}>NIT: {storeNit} · {storeEmail}</Text>
           </View>
           <View style={s.headerRight}>
             <Text style={s.receiptNo}>RECIBO #{orderNumber}</Text>
@@ -119,7 +122,7 @@ export function Receipt({ items, tieneFactura, getPrecio, orderNumber, clientNam
             <Text style={{ color: '#16A34A' }}>{shipping === 0 ? 'GRATIS' : fmt(shipping)}</Text>
           </View>
           {tieneFactura && (
-            <View style={s.row}><Text style={s.label}>IVA (16%)</Text><Text>{fmt(iva)}</Text></View>
+            <View style={s.row}><Text style={s.label}>IVA (13%)</Text><Text>{fmt(iva)}</Text></View>
           )}
         </View>
 
@@ -136,10 +139,10 @@ export function Receipt({ items, tieneFactura, getPrecio, orderNumber, clientNam
           <Text style={s.policyTitle}>Políticas de la empresa</Text>
           <Text>• Devoluciones: Aceptamos devoluciones dentro de 30 días naturales con empaque original y comprobante de compra.</Text>
           <Text>• Garantía: Todos los productos cuentan con garantía del fabricante. PrintMax actúa como intermediario para trámites de garantía.</Text>
-          <Text>• Envíos: El tiempo de entrega es de 2-5 días hábiles. Envío gratuito en pedidos mayores a $800 MXN.</Text>
+          <Text>• Envíos: El tiempo de entrega es de 2-5 días hábiles. Envío gratuito en pedidos mayores a Bs. 500.</Text>
           <Text>• Facturación: Las facturas se emiten dentro de los 30 días del mes de la compra. Posterior a ese plazo no se expedirán.</Text>
           <Text style={{ marginTop: 8, color: '#bbb' }}>
-            PrintMax S.A. de C.V. · Av. Revolución 123, CDMX · RFC: PMX123456ABC · ©2025
+            PrintMax S.R.L. · La Paz, Bolivia · NIT: {storeNit} · ©2025
           </Text>
         </View>
       </Page>

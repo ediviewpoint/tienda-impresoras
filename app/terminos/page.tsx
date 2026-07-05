@@ -15,7 +15,7 @@ export default function TerminosPage() {
         <section>
           <h2 className="text-lg font-bold text-gray-800 mb-3">1. Aceptación</h2>
           <p className="text-gray-600 leading-relaxed">
-            Al acceder y usar el sitio web printmax.mx, aceptas estar sujeto a estos Términos y Condiciones. Si no
+            Al acceder y usar este sitio web, aceptas estar sujeto a estos Términos y Condiciones. Si no
             estás de acuerdo con alguno de ellos, te pedimos que no uses nuestros servicios.
           </p>
         </section>
@@ -23,7 +23,7 @@ export default function TerminosPage() {
         <section>
           <h2 className="text-lg font-bold text-gray-800 mb-3">2. Productos y precios</h2>
           <p className="text-gray-600 leading-relaxed">
-            Todos los precios están expresados en pesos mexicanos (MXN) e incluyen IVA. PrintMax se reserva el derecho
+            Todos los precios están expresados en bolivianos (Bs.) e incluyen IVA. PrintMax se reserva el derecho
             de modificar precios, descripción o disponibilidad de productos sin previo aviso. Las órdenes confirmadas
             mantienen el precio al momento de la compra.
           </p>
@@ -35,14 +35,14 @@ export default function TerminosPage() {
             <li>El pedido se considera confirmado una vez recibido el pago</li>
             <li>Recibirás un correo de confirmación con el número de pedido</li>
             <li>Los tiempos de entrega son estimados y pueden variar según disponibilidad</li>
-            <li>Para pedidos con factura (CFDI), deberás proporcionar tus datos fiscales al momento de la compra</li>
+            <li>Para pedidos con factura, deberás proporcionar tu NIT o CI al momento de la compra</li>
           </ul>
         </section>
 
         <section>
           <h2 className="text-lg font-bold text-gray-800 mb-3">4. Envíos</h2>
           <p className="text-gray-600 leading-relaxed">
-            Realizamos envíos a toda la República Mexicana. El envío es gratuito en pedidos mayores a $800 MXN.
+            Realizamos envíos a todo el territorio boliviano. El envío es gratuito en pedidos mayores a Bs. 500.
             Los tiempos de entrega estimados son de 3 a 7 días hábiles dependiendo de la ubicación.
           </p>
         </section>
@@ -75,8 +75,8 @@ export default function TerminosPage() {
         <section>
           <h2 className="text-lg font-bold text-gray-800 mb-3">8. Ley aplicable</h2>
           <p className="text-gray-600 leading-relaxed">
-            Estos términos se rigen por las leyes de los Estados Unidos Mexicanos. Cualquier controversia se someterá
-            a la jurisdicción de los tribunales competentes de la Ciudad de México.
+            Estos términos se rigen por las leyes del Estado Plurinacional de Bolivia. Cualquier controversia se someterá
+            a la jurisdicción de los tribunales competentes de la ciudad de La Paz.
           </p>
         </section>
       </div>

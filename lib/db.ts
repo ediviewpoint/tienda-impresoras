@@ -1,5 +1,9 @@
-import { PrismaClient } from '@/lib/generated/prisma/client'
+import { PrismaClient, Prisma } from '@/lib/generated/prisma/client'
 import { PrismaNeonHttp } from '@prisma/adapter-neon'
+
+// Serialize Decimal fields as numbers in JSON responses (not strings)
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+;(Prisma.Decimal.prototype as any).toJSON = function () { return this.toNumber() }
 
 const url = process.env.DATABASE_URL ?? ''
 // Prefer unpooled URL for Neon HTTP driver (direct connection)

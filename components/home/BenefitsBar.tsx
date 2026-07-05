@@ -2,7 +2,7 @@ const benefits = [
   {
     icon: '🚚',
     title: 'Envío Gratis',
-    sub: 'Pedidos +$800 MXN',
+    sub: 'Pedidos +Bs. 500',
     bg: 'bg-primary/10',
     color: 'text-primary',
   },

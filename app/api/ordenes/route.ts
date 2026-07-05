@@ -73,7 +73,7 @@ export async function POST(req: NextRequest) {
   const productMap = new Map(products.map(p => [p.id, p]))
   const itemsData = body.items.map((item: { productId: string; quantity: number; unitPrice?: number }) => {
     const product = productMap.get(item.productId)!
-    const unitPrice = item.unitPrice ?? product.price
+    const unitPrice = Number(item.unitPrice ?? product.price)
     return {
       productId: item.productId,
       quantity: Number(item.quantity),
@@ -113,8 +113,8 @@ export async function POST(req: NextRequest) {
     const emailItems = order.items.map(i => ({
       name: i.product.name,
       quantity: i.quantity,
-      unitPrice: i.unitPrice,
-      total: i.total,
+      unitPrice: Number(i.unitPrice),
+      total: Number(i.total),
     }))
 
     getResend().emails.send({
@@ -125,9 +125,9 @@ export async function POST(req: NextRequest) {
         orderNumber: order.orderNumber,
         clientName: order.clientName,
         items: emailItems,
-        subtotal: order.subtotal,
-        shipping: order.shipping,
-        total: order.total,
+        subtotal: Number(order.subtotal),
+        shipping: Number(order.shipping),
+        total: Number(order.total),
         tieneFactura: order.tieneFactura,
         paymentMethod: order.paymentMethod,
       }),
@@ -141,7 +141,7 @@ export async function POST(req: NextRequest) {
         orderNumber: order.orderNumber,
         clientName: order.clientName,
         clientEmail: order.clientEmail,
-        total: order.total,
+        total: Number(order.total),
         paymentMethod: order.paymentMethod,
         itemCount: order.items.length,
       }),

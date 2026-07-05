@@ -115,7 +115,7 @@ export default function AdminShell({ stats, initialProducts }: Props) {
                         <td className="py-2.5 font-mono text-xs text-gray-500">{o.orderNumber}</td>
                         <td className="py-2.5 text-gray-700">{o.clientName}</td>
                         <td className="py-2.5 text-gray-500">{o.items.length} producto{o.items.length !== 1 ? 's' : ''}</td>
-                        <td className="py-2.5 font-semibold">{formatPrice(o.total)}</td>
+                        <td className="py-2.5 font-semibold">{formatPrice(Number(o.total))}</td>
                         <td className="py-2.5">
                           <span className={`text-xs font-semibold px-2 py-0.5 rounded-full ${STATUS_COLORS[o.status] ?? 'bg-gray-100 text-gray-600'}`}>
                             {o.status}

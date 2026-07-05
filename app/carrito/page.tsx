@@ -11,7 +11,7 @@ export default function CarritoPage() {
   const remove = useStore(s => s.remove)
   const updateQty = useStore(s => s.updateQty)
   const total = useCartTotal()
-  const shipping = total >= 800 ? 0 : 150
+  const shipping = total >= 500 ? 0 : 50
   const tieneFactura = useStore(s => s.tieneFactura)
 
   if (items.length === 0) {

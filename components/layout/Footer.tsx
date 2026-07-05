@@ -44,7 +44,7 @@ export function Footer() {
             <span className="text-xl font-extrabold">Print<span className="text-blue-300">Max</span></span>
           </Link>
           <p className="text-sm text-white/55 leading-relaxed max-w-xs">
-            Tu tienda especializada en impresoras, consumibles y accesorios. Más de 15 años siendo líderes en el mercado mexicano.
+            Tu tienda especializada en impresoras, consumibles y accesorios en Bolivia.
           </p>
           <div className="flex gap-2 mt-5">
             {['FB', 'IG', 'YT', 'WA'].map(s => (
@@ -76,7 +76,7 @@ export function Footer() {
         <div className="max-w-7xl mx-auto px-6 py-5 flex items-center justify-between">
           <p className="text-xs text-white/40">© 2025 PrintMax. Todos los derechos reservados.</p>
           <div className="flex gap-2">
-            {['VISA', 'MC', 'AMEX', 'OXXO', 'SPEI', 'PayPal'].map(p => (
+            {['VISA', 'MC', 'PayPal', 'Transferencia', 'QR'].map(p => (
               <span key={p} className="h-6 px-2.5 bg-white/10 rounded text-[11px] font-bold text-white/60 flex items-center">
                 {p}
               </span>

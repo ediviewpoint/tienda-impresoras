@@ -22,11 +22,11 @@ interface Props {
 }
 
 const fmt = (n: number) =>
-  new Intl.NumberFormat('es-MX', { style: 'currency', currency: 'MXN' }).format(n)
+  `Bs. ${new Intl.NumberFormat('es-BO', { maximumFractionDigits: 0 }).format(n)}`
 
 const PAYMENT_LABELS: Record<string, string> = {
   paypal: 'PayPal',
-  spei: 'SPEI / Transferencia',
+  transferencia: 'Transferencia Bancaria',
   manual: 'WhatsApp / Efectivo',
 }
 
@@ -105,7 +105,7 @@ export default function OrderConfirmation({
             </Text>
 
             <Button
-              href="https://printmax.mx/cuenta"
+              href={`${process.env.NEXT_PUBLIC_SITE_URL ?? 'https://printmax.bo'}/cuenta`}
               style={{ backgroundColor: '#1852D9', color: '#fff', borderRadius: 999, padding: '12px 28px', fontSize: 14, fontWeight: 700, textDecoration: 'none', display: 'inline-block', marginTop: 24 }}
             >
               Ver mis pedidos
@@ -115,7 +115,7 @@ export default function OrderConfirmation({
           {/* Footer */}
           <Section style={{ backgroundColor: '#f9fafb', padding: '20px 40px', borderTop: '1px solid #e5e7eb' }}>
             <Text style={{ fontSize: 12, color: '#9ca3af', margin: 0, textAlign: 'center' }}>
-              PrintMax · printmax.mx · Envío gratis en pedidos +$800 MXN
+              PrintMax Bolivia · Envío gratis en pedidos +Bs. 500
             </Text>
           </Section>
         </Container>

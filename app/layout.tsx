@@ -13,23 +13,23 @@ import { auth } from '@/auth'
 const geist = Geist({subsets:['latin'],variable:'--font-sans'});
 
 export const metadata: Metadata = {
-  metadataBase: new URL('https://printmax.mx'),
+  metadataBase: new URL(process.env.NEXT_PUBLIC_SITE_URL ?? 'https://printmax.bo'),
   title: {
     default: 'PrintMax — Tu Tienda de Impresoras',
     template: '%s | PrintMax',
   },
-  description: 'Las mejores impresoras, tóner, tinta y accesorios. Envío gratis en pedidos +$800 MXN. Garantía oficial.',
+  description: 'Las mejores impresoras, tóner, tinta y accesorios en Bolivia. Envío gratis en pedidos +Bs. 500. Garantía oficial.',
   openGraph: {
     type: 'website',
-    locale: 'es_MX',
+    locale: 'es_BO',
     siteName: 'PrintMax',
     title: 'PrintMax — Tu Tienda de Impresoras',
-    description: 'Las mejores impresoras, tóner, tinta y accesorios. Envío gratis en pedidos +$800 MXN. Garantía oficial.',
+    description: 'Las mejores impresoras, tóner, tinta y accesorios en Bolivia. Envío gratis en pedidos +Bs. 500. Garantía oficial.',
   },
   twitter: {
     card: 'summary_large_image',
     title: 'PrintMax — Tu Tienda de Impresoras',
-    description: 'Las mejores impresoras, tóner, tinta y accesorios. Envío gratis en pedidos +$800 MXN.',
+    description: 'Las mejores impresoras, tóner, tinta y accesorios en Bolivia. Envío gratis en pedidos +Bs. 500.',
   },
   robots: { index: true, follow: true },
 }

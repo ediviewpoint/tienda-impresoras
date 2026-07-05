@@ -15,8 +15,8 @@ export default function PrivacidadPage() {
         <section>
           <h2 className="text-lg font-bold text-gray-800 mb-3">1. Responsable del tratamiento</h2>
           <p className="text-gray-600 leading-relaxed">
-            PrintMax S.A. de C.V. (en adelante "PrintMax"), con domicilio en Ciudad de México, es responsable del tratamiento de
-            los datos personales que nos proporciones. Puedes contactarnos en <strong>privacidad@printmax.mx</strong>.
+            PrintMax S.R.L. (en adelante "PrintMax"), con domicilio en La Paz, Bolivia, es responsable del tratamiento de
+            los datos personales que nos proporciones. Puedes contactarnos en <strong>privacidad@printmax.bo</strong>.
           </p>
         </section>
 
@@ -27,7 +27,7 @@ export default function PrivacidadPage() {
             <li>Número de teléfono (opcional)</li>
             <li>Dirección de envío y facturación</li>
             <li>Historial de pedidos y productos consultados</li>
-            <li>Información de pago procesada por terceros (PayPal, SPEI) — no almacenamos datos bancarios</li>
+            <li>Información de pago procesada por terceros (PayPal, transferencia bancaria) — no almacenamos datos bancarios</li>
           </ul>
         </section>
 
@@ -45,18 +45,18 @@ export default function PrivacidadPage() {
         <section>
           <h2 className="text-lg font-bold text-gray-800 mb-3">4. Compartición de datos</h2>
           <p className="text-gray-600 leading-relaxed">
-            No vendemos ni rentamos tus datos personales a terceros. Podemos compartirlos con proveedores de servicios
+            No vendemos ni cedemos tus datos personales a terceros. Podemos compartirlos con proveedores de servicios
             que nos ayudan a operar el sitio (procesadores de pago, servicios de correo electrónico) bajo acuerdos de
             confidencialidad estrictos.
           </p>
         </section>
 
         <section>
-          <h2 className="text-lg font-bold text-gray-800 mb-3">5. Tus derechos ARCO</h2>
+          <h2 className="text-lg font-bold text-gray-800 mb-3">5. Tus derechos</h2>
           <p className="text-gray-600 leading-relaxed">
-            Tienes derecho a Acceder, Rectificar, Cancelar y Oponerte al tratamiento de tus datos personales
-            (derechos ARCO), conforme a la Ley Federal de Protección de Datos Personales en Posesión de los
-            Particulares. Envía tu solicitud a <strong>privacidad@printmax.mx</strong>.
+            Tienes derecho a acceder, rectificar, cancelar y oponerte al tratamiento de tus datos personales,
+            conforme a la Ley N° 164 de Telecomunicaciones y Tecnologías de Información y Comunicación de Bolivia
+            y la normativa vigente en protección de datos personales. Envía tu solicitud a <strong>privacidad@printmax.bo</strong>.
           </p>
         </section>
 

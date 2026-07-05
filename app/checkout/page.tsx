@@ -6,7 +6,7 @@ import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { z } from 'zod'
 import { useStore, useCartTotal } from '@/lib/store/useStore'
-import { formatPrice } from '@/lib/utils'
+import { formatPrice, FREE_SHIPPING_THRESHOLD, SHIPPING_COST } from '@/lib/utils'
 import dynamic from 'next/dynamic'
 import type { CartItem } from '@/lib/store/useStore'
 import { useSession } from 'next-auth/react'
@@ -23,15 +23,16 @@ const PayPalButton = dynamic(
 )
 
 const PAYMENT_METHODS = [
-  { id: 'paypal', icon: '🅿️', label: 'PayPal' },
-  { id: 'spei',   icon: '🏦', label: 'SPEI / QR' },
-  { id: 'manual', icon: '📱', label: 'WhatsApp' },
+  { id: 'paypal',        icon: '🅿️', label: 'PayPal' },
+  { id: 'transferencia', icon: '🏦', label: 'Transferencia' },
+  { id: 'manual',        icon: '📱', label: 'WhatsApp' },
 ]
 
-const SPEI_INFO = {
-  banco: 'BBVA',
-  clabe: '012 180 0012 3456 7890 1',
-  beneficiario: 'PrintMax S.A. de C.V.',
+const TRANSFER_INFO = {
+  banco:    process.env.NEXT_PUBLIC_BANK_NAME           ?? '—',
+  cuenta:   process.env.NEXT_PUBLIC_BANK_ACCOUNT        ?? '—',
+  titular:  process.env.NEXT_PUBLIC_BANK_ACCOUNT_HOLDER ?? 'PrintMax S.R.L.',
+  tipo:     process.env.NEXT_PUBLIC_BANK_ACCOUNT_TYPE   ?? 'Cuenta Corriente',
   concepto: 'Pago pedido PrintMax',
 }
 
@@ -40,11 +41,11 @@ const checkoutSchema = z.object({
   nombre: z.string().min(2, 'El nombre debe tener al menos 2 caracteres'),
   email: z.string().email('Ingresa un email válido'),
   telefono: z.string().regex(/^(\+?[\d\s\-()]{7,15})?$/, 'Teléfono inválido').optional().or(z.literal('')),
-  cp: z.string().regex(/^(\d{5})?$/, 'Código postal: 5 dígitos').optional().or(z.literal('')),
+  cp: z.string().regex(/^(\d{3,6})?$/, 'Código postal inválido').optional().or(z.literal('')),
   direccion: z.string().optional(),
   ciudad: z.string().optional(),
   estado: z.string().optional(),
-  paymentMethod: z.enum(['paypal', 'spei', 'manual']),
+  paymentMethod: z.enum(['paypal', 'transferencia', 'manual']),
 })
 
 type CheckoutForm = z.infer<typeof checkoutSchema>
@@ -82,7 +83,6 @@ export default function CheckoutPage() {
     register,
     handleSubmit,
     watch,
-    setValue,
     formState: { errors },
   } = useForm<CheckoutForm>({
     resolver: zodResolver(checkoutSchema),
@@ -102,7 +102,7 @@ export default function CheckoutPage() {
   const nombre = watch('nombre')
   const email = watch('email')
 
-  const shipping = total >= 800 ? 0 : 150
+  const shipping = total >= FREE_SHIPPING_THRESHOLD ? 0 : SHIPPING_COST
   const grandTotal = total + shipping
 
   async function saveOrder(formData: CheckoutForm, paypalOrderId?: string) {
@@ -173,7 +173,7 @@ export default function CheckoutPage() {
   // ── Success screen ────────────────────────────────────────────────────────────
   if (done && orderResult) {
     const isWhatsApp = paymentMethod === 'manual'
-    const isSPEI = paymentMethod === 'spei'
+    const isTransfer = paymentMethod === 'transferencia'
     const formSnap = { nombre, email, telefono: watch('telefono'), direccion: watch('direccion'), ciudad: watch('ciudad'), cp: watch('cp'), estado: watch('estado'), paymentMethod }
 
     return (
@@ -182,9 +182,9 @@ export default function CheckoutPage() {
         animate={{ opacity: 1, y: 0 }}
         className="max-w-xl mx-auto px-6 mt-20 text-center space-y-4"
       >
-        <div className="text-6xl">{isWhatsApp ? '📱' : isSPEI ? '🏦' : '✅'}</div>
+        <div className="text-6xl">{isWhatsApp ? '📱' : isTransfer ? '🏦' : '✅'}</div>
         <h2 className="text-2xl font-extrabold text-gray-900">
-          {isWhatsApp ? '¡Pedido registrado!' : isSPEI ? '¡Pedido registrado!' : '¡Pago confirmado!'}
+          {isWhatsApp ? '¡Pedido registrado!' : isTransfer ? '¡Pedido registrado!' : '¡Pago confirmado!'}
         </h2>
         <p className="text-gray-500 font-mono text-sm">#{orderResult.orderNumber}</p>
 
@@ -193,7 +193,7 @@ export default function CheckoutPage() {
             <p className="font-bold text-gray-900">Siguiente paso:</p>
             <p className="text-sm text-gray-600">Envía tu pedido por WhatsApp para coordinar la entrega y pago.</p>
             <a
-              href={`https://wa.me/${process.env.NEXT_PUBLIC_WHATSAPP_NUMBER ?? '521XXXXXXXXXX'}?text=${buildWhatsAppMessage(formSnap as CheckoutForm, orderResult.orderNumber)}`}
+              href={`https://wa.me/${process.env.NEXT_PUBLIC_WHATSAPP_NUMBER ?? '591XXXXXXXXX'}?text=${buildWhatsAppMessage(formSnap as CheckoutForm, orderResult.orderNumber)}`}
               target="_blank"
               rel="noopener noreferrer"
               className="flex items-center justify-center gap-2 w-full h-12 rounded-full bg-[#25D366] text-white font-bold text-sm hover:bg-[#20BA5A] transition-colors"
@@ -204,11 +204,11 @@ export default function CheckoutPage() {
           </div>
         )}
 
-        {isSPEI && (
+        {isTransfer && (
           <div className="bg-blue-50 border border-blue-100 rounded-xl p-5 text-left space-y-3">
-            <p className="font-bold text-gray-900">Realiza tu transferencia SPEI:</p>
+            <p className="font-bold text-gray-900">Realiza tu transferencia bancaria:</p>
             <div className="space-y-2 text-sm">
-              {Object.entries(SPEI_INFO).map(([k, v]) => (
+              {Object.entries(TRANSFER_INFO).map(([k, v]) => (
                 <div key={k} className="flex justify-between">
                   <span className="text-gray-500 capitalize">{k}:</span>
                   <span className="font-semibold text-gray-900 font-mono">{v}</span>
@@ -269,25 +269,25 @@ export default function CheckoutPage() {
               </div>
               <div>
                 <label className="text-xs font-semibold text-gray-500 mb-1 block">Teléfono</label>
-                <input type="tel" {...register('telefono')} placeholder="55 1234 5678" className={inputCls(!!errors.telefono)} />
+                <input type="tel" {...register('telefono')} placeholder="+591 70000000" className={inputCls(!!errors.telefono)} />
                 <FieldError msg={errors.telefono?.message} />
               </div>
               <div>
                 <label className="text-xs font-semibold text-gray-500 mb-1 block">Código Postal</label>
-                <input {...register('cp')} placeholder="06600" className={inputCls(!!errors.cp)} maxLength={5} />
+                <input {...register('cp')} placeholder="0000" className={inputCls(!!errors.cp)} maxLength={6} />
                 <FieldError msg={errors.cp?.message} />
               </div>
               <div className="col-span-2">
                 <label className="text-xs font-semibold text-gray-500 mb-1 block">Dirección</label>
-                <input {...register('direccion')} placeholder="Calle, número, colonia" className={inputCls()} />
+                <input {...register('direccion')} placeholder="Calle, número, zona" className={inputCls()} />
               </div>
               <div>
                 <label className="text-xs font-semibold text-gray-500 mb-1 block">Ciudad</label>
-                <input {...register('ciudad')} placeholder="Ciudad de México" className={inputCls()} />
+                <input {...register('ciudad')} placeholder="La Paz" className={inputCls()} />
               </div>
               <div>
-                <label className="text-xs font-semibold text-gray-500 mb-1 block">Estado</label>
-                <input {...register('estado')} placeholder="CDMX" className={inputCls()} />
+                <label className="text-xs font-semibold text-gray-500 mb-1 block">Departamento</label>
+                <input {...register('estado')} placeholder="La Paz" className={inputCls()} />
               </div>
             </div>
           </div>
@@ -311,11 +311,11 @@ export default function CheckoutPage() {
             </div>
 
             <AnimatePresence>
-              {paymentMethod === 'spei' && (
+              {paymentMethod === 'transferencia' && (
                 <motion.div initial={{ opacity: 0, height: 0 }} animate={{ opacity: 1, height: 'auto' }} exit={{ opacity: 0, height: 0 }}
                   className="bg-blue-50 rounded-xl p-4 text-sm space-y-2">
                   <p className="font-bold text-gray-800 text-xs uppercase tracking-wide mb-2">Datos de transferencia</p>
-                  {Object.entries(SPEI_INFO).map(([k, v]) => (
+                  {Object.entries(TRANSFER_INFO).map(([k, v]) => (
                     <div key={k} className="flex justify-between">
                       <span className="text-gray-500 capitalize">{k}:</span>
                       <span className="font-semibold font-mono text-gray-800">{v}</span>
@@ -390,7 +390,7 @@ export default function CheckoutPage() {
               disabled={saving || items.length === 0}
               className="mt-5 w-full h-12 rounded-full bg-[#FF5722] text-white font-bold text-sm flex items-center justify-center gap-2 hover:bg-[#E64A19] transition-colors shadow-[0_4px_16px_rgba(255,87,34,.35)] disabled:opacity-60 disabled:cursor-not-allowed"
             >
-              {saving ? 'Procesando…' : paymentMethod === 'manual' ? '📱 Confirmar y abrir WhatsApp' : '🏦 Confirmar y obtener CLABE'}
+              {saving ? 'Procesando…' : paymentMethod === 'manual' ? '📱 Confirmar y abrir WhatsApp' : '🏦 Confirmar transferencia'}
             </button>
           )}
         </div>

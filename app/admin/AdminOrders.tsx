@@ -86,7 +86,7 @@ export default function AdminOrders() {
                     <p className="font-semibold text-gray-800">{o.clientName}</p>
                     <p className="text-xs text-gray-400">{o.clientEmail}</p>
                   </td>
-                  <td className="px-4 py-3 font-semibold">{formatPrice(o.total)}</td>
+                  <td className="px-4 py-3 font-semibold">{formatPrice(Number(o.total))}</td>
                   <td className="px-4 py-3 text-gray-500 capitalize">{o.paymentMethod}</td>
                   <td className="px-4 py-3">
                     <select
@@ -98,7 +98,7 @@ export default function AdminOrders() {
                     </select>
                   </td>
                   <td className="px-4 py-3 text-xs text-gray-400">
-                    {new Date(o.createdAt).toLocaleDateString('es-MX', { day: '2-digit', month: 'short', year: 'numeric' })}
+                    {new Date(o.createdAt).toLocaleDateString('es-BO', { day: '2-digit', month: 'short', year: 'numeric' })}
                   </td>
                   <td className="px-4 py-3">
                     <button
@@ -159,7 +159,7 @@ export default function AdminOrders() {
                   {selected.items.map(item => (
                     <div key={item.id} className="flex justify-between">
                       <span className="text-gray-700">{item.product.name} ×{item.quantity}</span>
-                      <span className="font-semibold">{formatPrice(item.total)}</span>
+                      <span className="font-semibold">{formatPrice(Number(item.total))}</span>
                     </div>
                   ))}
                 </div>
@@ -167,13 +167,13 @@ export default function AdminOrders() {
 
               <div className="border-t border-gray-100 pt-4 space-y-1">
                 <div className="flex justify-between text-gray-500">
-                  <span>Subtotal</span><span>{formatPrice(selected.subtotal)}</span>
+                  <span>Subtotal</span><span>{formatPrice(Number(selected.subtotal))}</span>
                 </div>
                 <div className="flex justify-between text-gray-500">
-                  <span>Envío</span><span>{selected.shipping === 0 ? 'GRATIS' : formatPrice(selected.shipping)}</span>
+                  <span>Envío</span><span>{Number(selected.shipping) === 0 ? 'GRATIS' : formatPrice(Number(selected.shipping))}</span>
                 </div>
                 <div className="flex justify-between font-extrabold text-base pt-1">
-                  <span>Total</span><span>{formatPrice(selected.total)}</span>
+                  <span>Total</span><span>{formatPrice(Number(selected.total))}</span>
                 </div>
               </div>
 

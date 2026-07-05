@@ -115,10 +115,10 @@ export default function CuentaClient({ user, orders }: Props) {
                       <div>
                         <p className="font-mono text-xs text-gray-400">{order.orderNumber}</p>
                         <p className="font-bold text-gray-900 mt-0.5">
-                          {order.items.length} producto{order.items.length !== 1 ? 's' : ''} — {formatPrice(order.total)}
+                          {order.items.length} producto{order.items.length !== 1 ? 's' : ''} — {formatPrice(Number(order.total))}
                         </p>
                         <p className="text-xs text-gray-400 mt-0.5">
-                          {new Date(order.createdAt).toLocaleDateString('es-MX', { day: '2-digit', month: 'long', year: 'numeric' })}
+                          {new Date(order.createdAt).toLocaleDateString('es-BO', { day: '2-digit', month: 'long', year: 'numeric' })}
                         </p>
                       </div>
                       <span className={`text-xs font-semibold px-3 py-1 rounded-full ${STATUS_COLORS[order.status] ?? 'bg-gray-100 text-gray-600'}`}>
@@ -131,7 +131,7 @@ export default function CuentaClient({ user, orders }: Props) {
                         {order.items.map(item => (
                           <div key={item.id} className="flex justify-between text-sm">
                             <span className="text-gray-600">{item.product.name} ×{item.quantity}</span>
-                            <span className="font-semibold">{formatPrice(item.total)}</span>
+                            <span className="font-semibold">{formatPrice(Number(item.total))}</span>
                           </div>
                         ))}
                         <div className="flex justify-between text-xs text-gray-400 pt-2 border-t border-gray-50">

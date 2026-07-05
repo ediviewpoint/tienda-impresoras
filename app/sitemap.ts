@@ -3,7 +3,7 @@ import { prisma } from '@/lib/db'
 
 export const dynamic = 'force-dynamic'
 
-const BASE = 'https://printmax.mx'
+const BASE = process.env.NEXT_PUBLIC_SITE_URL ?? 'https://printmax.bo'
 
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   const products = await prisma.product.findMany({

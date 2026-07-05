@@ -18,7 +18,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   if (!p) return { title: 'Producto no encontrado' }
 
   const title = `${p.name} | PrintMax`
-  const description = `${p.description} — Desde $${p.price.toLocaleString('es-MX')} MXN.`
+  const description = `${p.description} — Desde Bs. ${Number(p.price).toLocaleString('es-BO')}.`
 
   return {
     title,
@@ -56,7 +56,7 @@ export default async function ProductPage({ params }: Props) {
     brand: { '@type': 'Brand', name: p.brand.name },
     offers: {
       '@type': 'Offer',
-      priceCurrency: 'MXN',
+      priceCurrency: 'BOB',
       price: p.price,
       availability: p.inStock
         ? 'https://schema.org/InStock'

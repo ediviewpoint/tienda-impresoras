@@ -9,6 +9,6 @@ export default function robots(): MetadataRoute.Robots {
         disallow: ['/admin', '/api/', '/checkout', '/cuenta'],
       },
     ],
-    sitemap: 'https://printmax.mx/sitemap.xml',
+    sitemap: `${process.env.NEXT_PUBLIC_SITE_URL ?? 'https://printmax.bo'}/sitemap.xml`,
   }
 }

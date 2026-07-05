@@ -81,8 +81,8 @@ export default function AdminProducts({ initialProducts }: Props) {
       name: p.name,
       brand: p.brand.name,
       brandColor: p.brand.color,
-      price: p.price,
-      originalPrice: p.originalPrice ?? undefined,
+      price: Number(p.price),
+      originalPrice: p.originalPrice != null ? Number(p.originalPrice) : undefined,
       rating: p.rating,
       reviewCount: p.reviewCount,
       badge: p.badge,
@@ -203,7 +203,7 @@ export default function AdminProducts({ initialProducts }: Props) {
                 <td className="px-4 py-3">
                   <span className="text-xs bg-gray-100 text-gray-600 px-2 py-0.5 rounded-full font-semibold capitalize">{p.category.name}</span>
                 </td>
-                <td className="px-4 py-3 font-semibold">{formatPrice(p.price)}</td>
+                <td className="px-4 py-3 font-semibold">{formatPrice(Number(p.price))}</td>
                 <td className="px-4 py-3">
                   <span className={`text-xs font-semibold px-2 py-0.5 rounded-full ${p.inStock ? 'bg-emerald-100 text-emerald-700' : 'bg-red-100 text-red-700'}`}>
                     {p.inStock ? 'En stock' : 'Agotado'}

@@ -47,7 +47,7 @@ export default function WelcomeEmail({ name, email }: Props) {
             </Section>
 
             <Button
-              href="https://printmax.mx/catalogo"
+              href={`${process.env.NEXT_PUBLIC_SITE_URL ?? 'https://printmax.bo'}/catalogo`}
               style={{ backgroundColor: '#1852D9', color: '#fff', borderRadius: 999, padding: '12px 28px', fontSize: 14, fontWeight: 700, textDecoration: 'none', display: 'inline-block' }}
             >
               Ver catálogo
@@ -56,7 +56,7 @@ export default function WelcomeEmail({ name, email }: Props) {
 
           <Section style={{ backgroundColor: '#f9fafb', padding: '20px 40px', borderTop: '1px solid #e5e7eb' }}>
             <Text style={{ fontSize: 12, color: '#9ca3af', margin: 0, textAlign: 'center' }}>
-              PrintMax · printmax.mx · Si no creaste esta cuenta, ignora este correo.
+              PrintMax Bolivia · Si no creaste esta cuenta, ignora este correo.
             </Text>
           </Section>
         </Container>

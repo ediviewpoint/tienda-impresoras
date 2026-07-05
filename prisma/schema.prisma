@@ -29,8 +29,8 @@ model Product {
   id            String         @id @default(cuid())
   slug          String         @unique
   name          String
-  price         Float
-  originalPrice Float?
+  price         Decimal        @db.Decimal(10, 2)
+  originalPrice Decimal?       @db.Decimal(10, 2)
   rating        Float          @default(5)
   reviewCount   Int            @default(0)
   badge         String?
@@ -132,9 +132,9 @@ model Order {
   orderNumber   String      @unique
   status        String      @default("pendiente")
   tieneFactura  Boolean     @default(true)
-  subtotal      Float
-  shipping      Float       @default(0)
-  total         Float
+  subtotal      Decimal     @db.Decimal(10, 2)
+  shipping      Decimal     @db.Decimal(10, 2) @default(0)
+  total         Decimal     @db.Decimal(10, 2)
   paymentMethod String      @default("manual")
   notes         String?
   clientName    String
@@ -154,8 +154,8 @@ model Order {
 model OrderItem {
   id        String  @id @default(cuid())
   quantity  Int
-  unitPrice Float
-  total     Float
+  unitPrice Decimal @db.Decimal(10, 2)
+  total     Decimal @db.Decimal(10, 2)
   order     Order   @relation(fields: [orderId], references: [id], onDelete: Cascade)
   orderId   String
   product   Product @relation(fields: [productId], references: [id])

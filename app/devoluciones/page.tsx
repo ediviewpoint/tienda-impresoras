@@ -39,7 +39,7 @@ export default function DevolucionesPage() {
         <section>
           <h2 className="text-lg font-bold text-gray-800 mb-3">Proceso de devolución</h2>
           <ol className="list-decimal pl-5 space-y-2 text-gray-600">
-            <li>Escríbenos a <strong>devoluciones@printmax.mx</strong> con tu número de pedido</li>
+            <li>Escríbenos a <strong>devoluciones@printmax.bo</strong> con tu número de pedido</li>
             <li>Nuestro equipo valida la solicitud en 24 horas hábiles</li>
             <li>Te enviamos una guía de recolección sin costo</li>
             <li>Una vez recibido el producto, procesamos el reembolso en 5-7 días hábiles</li>
@@ -50,7 +50,7 @@ export default function DevolucionesPage() {
           <h2 className="text-lg font-bold text-gray-800 mb-3">Reembolsos</h2>
           <p className="text-gray-600 leading-relaxed">
             El reembolso se realiza mediante el mismo método de pago original. Para pagos con PayPal, el reembolso
-            aparece en 3-5 días hábiles. Para transferencias SPEI, en 5-7 días hábiles.
+            aparece en 3-5 días hábiles. Para transferencias bancarias, en 5-7 días hábiles.
           </p>
         </section>
 
