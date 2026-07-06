@@ -131,26 +131,28 @@ export async function POST(req: NextRequest) {
   const total = Math.round((subtotal + shipping) * 100) / 100
 
   // ── Reserva de stock + creación de orden ────────────────────────────────────
-  // PrismaNeonHttp (HTTP adapter) no soporta interactive transactions con lógica
-  // condicional sobre resultados intermedios. Usamos queries individuales con
-  // compensación: si falla el stock de un ítem, restauramos los ya decrementados.
+  // Usamos updateMany con condiciones en lugar de $executeRaw — es una API Prisma
+  // nativa compatible con PrismaNeonHttp. Lógica de compensación: si falla el stock
+  // de un ítem, incrementamos de vuelta los ya decrementados.
   const decremented: typeof itemsData = []
 
   for (const item of itemsData) {
-    const affected = await prisma.$executeRaw`
-      UPDATE "Product"
-      SET    "stock" = "stock" - ${item.quantity}
-      WHERE  "id"      = ${item.productId}
-        AND  "inStock" = true
-        AND  "active"  = true
-        AND  "stock"  >= ${item.quantity}
-    `
-    if (Number(affected) === 0) {
-      // Compensar: restaurar el stock ya decrementado en ítems anteriores
+    const { count } = await prisma.product.updateMany({
+      where: {
+        id: item.productId,
+        inStock: true,
+        active: true,
+        stock: { gte: item.quantity },
+      },
+      data: { stock: { decrement: item.quantity } },
+    })
+
+    if (count === 0) {
       for (const prev of decremented) {
-        await prisma.$executeRaw`
-          UPDATE "Product" SET "stock" = "stock" + ${prev.quantity} WHERE "id" = ${prev.productId}
-        `
+        await prisma.product.update({
+          where: { id: prev.productId },
+          data: { stock: { increment: prev.quantity } },
+        })
       }
       const p = productMap.get(item.productId)!
       return NextResponse.json(
@@ -186,9 +188,11 @@ export async function POST(req: NextRequest) {
       include: { items: { include: { product: true } } },
     })
   } catch (err) {
-    // Compensar: restaurar todo el stock si la creación de la orden falla
     for (const item of decremented) {
-      await prisma.$executeRaw`UPDATE "Product" SET "stock" = "stock" + ${item.quantity} WHERE "id" = ${item.productId}`
+      await prisma.product.update({
+        where: { id: item.productId },
+        data: { stock: { increment: item.quantity } },
+      })
     }
     throw err
   }

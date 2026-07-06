@@ -62,20 +62,19 @@ export async function PATCH(req: NextRequest, { params }: Params) {
   // Restaurar stock si la orden pasa a cancelado (y no estaba ya cancelada)
   const cancelando = body.status === 'cancelado' && existing.status !== 'cancelado'
 
-  const order = await prisma.$transaction(async (tx) => {
-    if (cancelando) {
-      for (const item of existing.items) {
-        await tx.product.update({
-          where: { id: item.productId },
-          data: { stock: { increment: item.quantity } },
-        })
-      }
+  if (cancelando) {
+    for (const item of existing.items) {
+      await prisma.product.update({
+        where: { id: item.productId },
+        data: { stock: { increment: item.quantity } },
+      })
     }
-    return tx.order.update({
-      where: { id },
-      data,
-      include: { items: { include: { product: true } } },
-    })
+  }
+
+  const order = await prisma.order.update({
+    where: { id },
+    data,
+    include: { items: { include: { product: true } } },
   })
 
   return NextResponse.json({ order })
