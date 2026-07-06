@@ -27,6 +27,7 @@ type EditForm = {
   description: string
   featuresText: string
   imageUrl: string
+  stock: number
   inStock: boolean
   active: boolean
   sku: string
@@ -36,7 +37,7 @@ type EditForm = {
 const EMPTY_FORM: EditForm = {
   name: '', brand: '', brandColor: '#1852D9', price: 0, originalPrice: undefined,
   rating: 5, reviewCount: 0, badge: null, category: 'laser',
-  description: '', featuresText: '', imageUrl: '', inStock: true, active: true, sku: '', slug: '',
+  description: '', featuresText: '', imageUrl: '', stock: 0, inStock: true, active: true, sku: '', slug: '',
 }
 
 function toSlug(str: string) {
@@ -83,6 +84,7 @@ export default function AdminProducts({ initialProducts }: Props) {
       brandColor: p.brand.color,
       price: Number(p.price),
       originalPrice: p.originalPrice != null ? Number(p.originalPrice) : undefined,
+      stock: p.stock,
       rating: p.rating,
       reviewCount: p.reviewCount,
       badge: p.badge,
@@ -178,7 +180,7 @@ export default function AdminProducts({ initialProducts }: Props) {
         <table className="w-full text-sm">
           <thead>
             <tr className="text-left text-xs text-gray-400 border-b border-gray-100 bg-gray-50">
-              {['Producto', 'SKU', 'Categoría', 'Precio', 'Stock', 'Activo', ''].map(h => (
+              {['Producto', 'SKU', 'Categoría', 'Precio', 'Unidades', 'Activo', ''].map(h => (
                 <th key={h} className="px-4 py-3 font-semibold">{h}</th>
               ))}
             </tr>
@@ -205,8 +207,8 @@ export default function AdminProducts({ initialProducts }: Props) {
                 </td>
                 <td className="px-4 py-3 font-semibold">{formatPrice(Number(p.price))}</td>
                 <td className="px-4 py-3">
-                  <span className={`text-xs font-semibold px-2 py-0.5 rounded-full ${p.inStock ? 'bg-emerald-100 text-emerald-700' : 'bg-red-100 text-red-700'}`}>
-                    {p.inStock ? 'En stock' : 'Agotado'}
+                  <span className={`text-xs font-semibold px-2 py-0.5 rounded-full ${p.stock > 0 && p.inStock ? 'bg-emerald-100 text-emerald-700' : 'bg-red-100 text-red-700'}`}>
+                    {p.stock > 0 && p.inStock ? `${p.stock} uds.` : 'Agotado'}
                   </span>
                 </td>
                 <td className="px-4 py-3">
@@ -334,10 +336,21 @@ export default function AdminProducts({ initialProducts }: Props) {
                 <textarea value={editing.featuresText} onChange={e => setField('featuresText', e.target.value)} rows={4} className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm outline-none focus:border-[#1852D9] resize-none" />
               </div>
 
+              <div>
+                <label className="text-xs font-semibold text-gray-500 mb-1 block">Unidades en stock</label>
+                <input
+                  type="number"
+                  min={0}
+                  value={editing.stock}
+                  onChange={e => setField('stock', Math.max(0, Number(e.target.value)))}
+                  className="w-full h-10 border border-gray-200 rounded-lg px-3 text-sm outline-none focus:border-[#1852D9] transition-all"
+                />
+              </div>
+
               <div className="flex gap-5">
                 <label className="flex items-center gap-2 cursor-pointer">
                   <input type="checkbox" checked={editing.inStock} onChange={e => setField('inStock', e.target.checked)} className="rounded" />
-                  <span className="text-sm font-semibold text-gray-700">En stock</span>
+                  <span className="text-sm font-semibold text-gray-700">Habilitado para venta</span>
                 </label>
                 <label className="flex items-center gap-2 cursor-pointer">
                   <input type="checkbox" checked={editing.active} onChange={e => setField('active', e.target.checked)} className="rounded" />

@@ -15,7 +15,11 @@ export function ProductCard({ product }: { product: Product }) {
   const [added, setAdded] = useState(false)
   const [imgError, setImgError] = useState(false)
 
+  const outOfStock = !product.inStock || product.stock === 0
+  const lowStock = product.inStock && product.stock > 0 && product.stock <= 5
+
   function handleAdd() {
+    if (outOfStock) return
     add(product)
     setAdded(true)
     setTimeout(() => setAdded(false), 1800)
@@ -34,9 +38,19 @@ export function ProductCard({ product }: { product: Product }) {
         className="relative p-7 flex items-center justify-center min-h-[180px] overflow-hidden"
         style={{ background: `linear-gradient(135deg, ${product.brandColor}18, ${product.brandColor}10)` }}
       >
-        {product.badge && (
+        {product.badge && !outOfStock && (
           <div className="absolute top-3 left-3 z-10">
             <Badge variant={product.badge} />
+          </div>
+        )}
+        {outOfStock && (
+          <div className="absolute top-3 left-3 z-10">
+            <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-gray-200 text-gray-500 uppercase tracking-wide">Agotado</span>
+          </div>
+        )}
+        {lowStock && (
+          <div className="absolute top-3 right-3 z-10">
+            <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-amber-100 text-amber-700">¡Últimas {product.stock}!</span>
           </div>
         )}
         {mainImage ? (
@@ -81,12 +95,15 @@ export function ProductCard({ product }: { product: Product }) {
 
         <motion.button
           onClick={handleAdd}
-          whileTap={{ scale: 0.97 }}
-          className={`mt-3.5 h-10 rounded-full text-sm font-bold flex items-center justify-center gap-2 transition-colors duration-200 opacity-0 group-hover:opacity-100 ${
-            added ? 'bg-emerald-500 text-white' : 'bg-[#1852D9] text-white hover:bg-[#1340B0]'
+          whileTap={outOfStock ? {} : { scale: 0.97 }}
+          disabled={outOfStock}
+          className={`mt-3.5 h-10 rounded-full text-sm font-bold flex items-center justify-center gap-2 transition-colors duration-200 ${
+            outOfStock
+              ? 'bg-gray-100 text-gray-400 cursor-not-allowed'
+              : `opacity-0 group-hover:opacity-100 ${added ? 'bg-emerald-500 text-white' : 'bg-[#1852D9] text-white hover:bg-[#1340B0]'}`
           }`}
         >
-          {added ? '✓ Agregado' : (
+          {outOfStock ? 'Sin stock' : added ? '✓ Agregado' : (
             <>
               <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
                 <circle cx="9" cy="21" r="1"/><circle cx="20" cy="21" r="1"/>

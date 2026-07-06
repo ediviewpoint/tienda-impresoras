@@ -4,12 +4,14 @@ import { getResend, FROM, ADMIN_EMAIL } from '@/lib/email'
 import OrderConfirmation from '@/emails/OrderConfirmation'
 import AdminNewOrder from '@/emails/AdminNewOrder'
 import { requireSession, isAdmin } from '@/lib/auth-guards'
+import { randomInt } from 'crypto'
 
 function generateOrderNumber() {
-  const date = new Date()
-  const ymd = `${date.getFullYear()}${String(date.getMonth() + 1).padStart(2, '0')}${String(date.getDate()).padStart(2, '0')}`
-  const rand = Math.floor(Math.random() * 9000) + 1000
-  return `ORD-${ymd}-${rand}`
+  const d = new Date()
+  const pad = (n: number, l = 2) => String(n).padStart(l, '0')
+  const ts = `${d.getFullYear()}${pad(d.getMonth() + 1)}${pad(d.getDate())}${pad(d.getHours())}${pad(d.getMinutes())}${pad(d.getSeconds())}`
+  const rand = pad(randomInt(0, 1_000_000), 6)
+  return `ORD-${ts}-${rand}`
 }
 
 export async function GET(req: NextRequest) {
@@ -64,14 +66,17 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: 'El pedido debe tener al menos un producto' }, { status: 400 })
   }
 
-  const productIds: string[] = body.items.map((i: { productId: string }) => i.productId)
+  const requestedItems: { productId: string; quantity: number; unitPrice?: number }[] = body.items
+
+  // Calcular montos fuera de la transacción (no requieren bloqueo)
+  const productIds = requestedItems.map(i => i.productId)
   const products = await prisma.product.findMany({ where: { id: { in: productIds } } })
   if (products.length !== productIds.length) {
     return NextResponse.json({ error: 'Uno o más productos no existen' }, { status: 400 })
   }
 
   const productMap = new Map(products.map(p => [p.id, p]))
-  const itemsData = body.items.map((item: { productId: string; quantity: number; unitPrice?: number }) => {
+  const itemsData = requestedItems.map(item => {
     const product = productMap.get(item.productId)!
     const unitPrice = Number(item.unitPrice ?? product.price)
     return {
@@ -82,32 +87,62 @@ export async function POST(req: NextRequest) {
     }
   })
 
-  const subtotal = itemsData.reduce((sum: number, i: { total: number }) => sum + i.total, 0)
+  const subtotal = itemsData.reduce((sum, i) => sum + i.total, 0)
   const shipping = Number(body.shipping ?? 0)
   const total = subtotal + shipping
 
-  const order = await prisma.order.create({
-    data: {
-      orderNumber: generateOrderNumber(),
-      status: body.status ?? 'pendiente',
-      tieneFactura: body.tieneFactura ?? true,
-      subtotal,
-      shipping,
-      total,
-      paymentMethod: body.paymentMethod ?? 'manual',
-      notes: body.notes ?? null,
-      clientName: body.clientName,
-      clientEmail: body.clientEmail,
-      clientPhone: body.clientPhone ?? null,
-      clientAddress: body.clientAddress ?? null,
-      clientCity: body.clientCity ?? null,
-      clientState: body.clientState ?? null,
-      clientZip: body.clientZip ?? null,
-      userId: body.userId ?? null,
-      items: { create: itemsData },
-    },
-    include: { items: { include: { product: true } } },
-  })
+  // Transacción: verificar stock + decrementar + crear orden de forma atómica
+  let order
+  try {
+    order = await prisma.$transaction(async (tx) => {
+      // UPDATE atómico: descuenta solo si hay stock suficiente e inStock=true.
+      // Retorna 0 filas si no hay stock → lanza error sin necesidad de SELECT previo.
+      for (const item of itemsData) {
+        const affected = await tx.$executeRaw`
+          UPDATE "Product"
+          SET "stock" = "stock" - ${item.quantity}
+          WHERE "id" = ${item.productId}
+            AND "inStock" = true
+            AND "stock" >= ${item.quantity}
+        `
+        if (affected === 0) {
+          const p = productMap.get(item.productId)!
+          throw Object.assign(
+            new Error(`Stock insuficiente: "${p.name}" (solicitado: ${item.quantity})`),
+            { code: 'STOCK_INSUFICIENTE', productName: p.name }
+          )
+        }
+      }
+
+      return tx.order.create({
+        data: {
+          orderNumber: generateOrderNumber(),
+          status: body.status ?? 'pendiente',
+          tieneFactura: body.tieneFactura ?? true,
+          subtotal,
+          shipping,
+          total,
+          paymentMethod: body.paymentMethod ?? 'manual',
+          notes: body.notes ?? null,
+          clientName: body.clientName,
+          clientEmail: body.clientEmail,
+          clientPhone: body.clientPhone ?? null,
+          clientAddress: body.clientAddress ?? null,
+          clientCity: body.clientCity ?? null,
+          clientState: body.clientState ?? null,
+          clientZip: body.clientZip ?? null,
+          userId: body.userId ?? null,
+          items: { create: itemsData },
+        },
+        include: { items: { include: { product: true } } },
+      })
+    })
+  } catch (err) {
+    if (err instanceof Error && (err as NodeJS.ErrnoException & { code?: string }).code === 'STOCK_INSUFICIENTE') {
+      return NextResponse.json({ error: err.message, code: 'STOCK_INSUFICIENTE' }, { status: 409 })
+    }
+    throw err
+  }
 
   if (process.env.RESEND_API_KEY) {
     const emailItems = order.items.map(i => ({

@@ -13,6 +13,7 @@ export interface Product {
   description: string
   features: string[]
   images: string[]
+  stock: number
   inStock: boolean
   sku: string
 }

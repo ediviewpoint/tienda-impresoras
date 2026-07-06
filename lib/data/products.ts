@@ -25,7 +25,7 @@ export const products: Product[] = [
     description: 'Impresora láser profesional monocromática con conectividad Ethernet y doble cara automática.',
     features: ['40 ppm', 'Ethernet + USB', 'Doble cara auto', '250 hojas', '3 años garantía'],
     images: [],
-    inStock: true,
+    stock: 999, inStock: true,
     sku: 'HP-LJ4001DN',
   },
   {
@@ -43,7 +43,7 @@ export const products: Product[] = [
     description: 'Sistema de tinta continua con depósitos recargables. Imprime, copia y escanea con WiFi integrado.',
     features: ['WiFi + USB', 'Imprime, copia, escanea', '33 ppm negro', '5760 dpi', 'Tinta recargable'],
     images: [],
-    inStock: true,
+    stock: 999, inStock: true,
     sku: 'EPS-L3250',
   },
   {
@@ -61,7 +61,7 @@ export const products: Product[] = [
     description: 'Impresora Megatank de bajo costo por página con WiFi y pantalla LCD.',
     features: ['WiFi + USB', 'LCD integrado', 'Impresión a color', '4800 dpi', 'Tinta recargable'],
     images: [],
-    inStock: true,
+    stock: 999, inStock: true,
     sku: 'CAN-G3160',
   },
   {
@@ -79,7 +79,7 @@ export const products: Product[] = [
     description: 'Impresora 3D de alta velocidad multicolor con sistema AMS Lite incluido.',
     features: ['4 colores simultáneos', '500 mm/s', 'WiFi + LAN', 'Auto-nivelación', 'Cámara integrada'],
     images: [],
-    inStock: true,
+    stock: 999, inStock: true,
     sku: 'BAM-A1MINI',
   },
   {
@@ -97,7 +97,7 @@ export const products: Product[] = [
     description: 'Impresora láser monocromática inalámbrica con doble cara automática para hogar y oficina.',
     features: ['32 ppm', 'WiFi + USB', 'Doble cara auto', '250 hojas', 'Mobile print'],
     images: [],
-    inStock: true,
+    stock: 999, inStock: true,
     sku: 'BRO-L2350DW',
   },
   {
@@ -115,7 +115,7 @@ export const products: Product[] = [
     description: 'Impresora multifuncional inalámbrica ideal para el hogar. Imprime, copia y escanea.',
     features: ['WiFi + USB', 'Imprime, copia, escanea', '7.5 ppm color', '4800 dpi', 'HP Smart App'],
     images: [],
-    inStock: true,
+    stock: 999, inStock: true,
     sku: 'HP-DJ2775',
   },
   {
@@ -133,7 +133,7 @@ export const products: Product[] = [
     description: 'Impresora láser compacta con WiFi directo, impresión móvil y alta capacidad de papel.',
     features: ['31 ppm', 'WiFi Direct', '251 hojas', 'Mobile print', 'USB 2.0'],
     images: [],
-    inStock: true,
+    stock: 999, inStock: true,
     sku: 'XER-B210',
   },
   {
@@ -151,7 +151,7 @@ export const products: Product[] = [
     description: 'Impresora 3D FDM de entrada de alta calidad con auto-nivelación CR Touch y pantalla táctil.',
     features: ['250mm/s', 'Auto-nivelación', 'Pantalla táctil', 'Marco metálico', 'Fácil montaje'],
     images: [],
-    inStock: true,
+    stock: 999, inStock: true,
     sku: 'CRE-E3V3SE',
   },
 ]

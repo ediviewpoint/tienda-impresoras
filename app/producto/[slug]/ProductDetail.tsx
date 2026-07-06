@@ -96,21 +96,46 @@ export function ProductDetail({ product }: { product: Product }) {
             ))}
           </ul>
 
+          {/* Stock badge */}
+          {product.inStock && product.stock > 0 && product.stock <= 5 && (
+            <p className="text-xs font-semibold text-amber-600 bg-amber-50 border border-amber-100 rounded-full px-3 py-1 w-fit mb-3">
+              Quedan {product.stock} unidades
+            </p>
+          )}
+          {(!product.inStock || product.stock === 0) && (
+            <p className="text-xs font-semibold text-red-600 bg-red-50 border border-red-100 rounded-full px-3 py-1 w-fit mb-3">
+              Agotado
+            </p>
+          )}
+
           {/* Qty + cart */}
           <div className="flex items-center gap-3 mt-auto">
             <div className="flex items-center border border-gray-200 rounded-full overflow-hidden">
-              <button onClick={() => setQty(q => Math.max(1, q - 1))} className="w-10 h-11 flex items-center justify-center text-gray-500 hover:bg-gray-50 font-bold text-lg">−</button>
+              <button
+                onClick={() => setQty(q => Math.max(1, q - 1))}
+                disabled={!product.inStock || product.stock === 0}
+                className="w-10 h-11 flex items-center justify-center text-gray-500 hover:bg-gray-50 font-bold text-lg disabled:opacity-40"
+              >−</button>
               <span className="w-10 text-center font-bold text-sm">{qty}</span>
-              <button onClick={() => setQty(q => q + 1)} className="w-10 h-11 flex items-center justify-center text-gray-500 hover:bg-gray-50 font-bold text-lg">+</button>
+              <button
+                onClick={() => setQty(q => Math.min(product.stock, q + 1))}
+                disabled={!product.inStock || product.stock === 0 || qty >= product.stock}
+                className="w-10 h-11 flex items-center justify-center text-gray-500 hover:bg-gray-50 font-bold text-lg disabled:opacity-40"
+              >+</button>
             </div>
             <motion.button
               onClick={handleAdd}
-              whileTap={{ scale: 0.97 }}
+              whileTap={product.inStock && product.stock > 0 ? { scale: 0.97 } : {}}
+              disabled={!product.inStock || product.stock === 0}
               className={`flex-1 h-11 rounded-full font-bold text-sm flex items-center justify-center gap-2 transition-colors ${
-                added ? 'bg-emerald-500 text-white' : 'bg-[#1852D9] text-white hover:bg-[#1340B0]'
+                !product.inStock || product.stock === 0
+                  ? 'bg-gray-200 text-gray-400 cursor-not-allowed'
+                  : added
+                    ? 'bg-emerald-500 text-white'
+                    : 'bg-[#1852D9] text-white hover:bg-[#1340B0]'
               }`}
             >
-              {added ? '✓ Agregado al carrito' : 'Agregar al carrito'}
+              {!product.inStock || product.stock === 0 ? 'Sin stock' : added ? '✓ Agregado al carrito' : 'Agregar al carrito'}
             </motion.button>
           </div>
 

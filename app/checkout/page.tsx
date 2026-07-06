@@ -76,6 +76,7 @@ export default function CheckoutPage() {
 
   const [done, setDone] = useState(false)
   const [saving, setSaving] = useState(false)
+  const [stockError, setStockError] = useState<string | null>(null)
   const [orderResult, setOrderResult] = useState<OrderResult | null>(null)
   const [snapshotItems, setSnapshotItems] = useState<CartItem[]>([])
 
@@ -107,6 +108,7 @@ export default function CheckoutPage() {
 
   async function saveOrder(formData: CheckoutForm, paypalOrderId?: string) {
     setSaving(true)
+    setStockError(null)
     try {
       const res = await fetch('/api/ordenes', {
         method: 'POST',
@@ -134,6 +136,10 @@ export default function CheckoutPage() {
         }),
       })
       const data = await res.json()
+      if (res.status === 409) {
+        setStockError(data.error ?? 'Un producto ya no tiene stock disponible.')
+        return false
+      }
       if (!res.ok) throw new Error(data.error ?? 'Error al confirmar pedido')
       setSnapshotItems([...items])
       setOrderResult({ orderNumber: data.order.orderNumber, id: data.order.id })
@@ -383,6 +389,19 @@ export default function CheckoutPage() {
             </div>
             <p className="text-xs text-gray-400">{tieneFactura ? 'Con factura (IVA incluido)' : 'Sin factura (precio neto)'}</p>
           </div>
+
+          <AnimatePresence>
+            {stockError && (
+              <motion.div
+                initial={{ opacity: 0, height: 0 }}
+                animate={{ opacity: 1, height: 'auto' }}
+                exit={{ opacity: 0, height: 0 }}
+                className="mt-4 bg-red-50 border border-red-200 rounded-xl px-4 py-3 text-sm text-red-700 font-medium"
+              >
+                <span className="font-bold">Sin stock:</span> {stockError}
+              </motion.div>
+            )}
+          </AnimatePresence>
 
           {paymentMethod !== 'paypal' && (
             <button

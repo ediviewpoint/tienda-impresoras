@@ -36,6 +36,7 @@ export function dbToUIProduct(p: PrismaProductFull): Product {
     description: p.description,
     features,
     images: [...p.images].sort((a, b) => a.order - b.order).map(i => i.url),
+    stock: p.stock,
     inStock: p.inStock,
     sku: p.sku,
   }

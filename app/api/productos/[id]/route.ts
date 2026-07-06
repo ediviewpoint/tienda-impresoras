@@ -32,6 +32,7 @@ export async function PATCH(req: NextRequest, { params }: Params) {
     if ('reviewCount' in body) data.reviewCount = Number(body.reviewCount)
     if ('badge' in body) data.badge = body.badge ?? null
     if ('description' in body) data.description = body.description
+    if ('stock' in body) data.stock = Math.max(0, Number(body.stock))
     if ('inStock' in body) data.inStock = body.inStock
     if ('active' in body) data.active = body.active
     if ('sku' in body) data.sku = body.sku

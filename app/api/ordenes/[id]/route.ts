@@ -36,7 +36,10 @@ export async function PATCH(req: NextRequest, { params }: Params) {
   const { id } = await params
   const body = await req.json()
 
-  const existing = await prisma.order.findUnique({ where: { id } })
+  const existing = await prisma.order.findUnique({
+    where: { id },
+    include: { items: true },
+  })
   if (!existing) return NextResponse.json({ error: 'Orden no encontrada' }, { status: 404 })
 
   if (body.status && !VALID_STATUSES.includes(body.status)) {
@@ -56,11 +59,25 @@ export async function PATCH(req: NextRequest, { params }: Params) {
     if (key in body) data[key] = body[key]
   }
 
-  const order = await prisma.order.update({
-    where: { id },
-    data,
-    include: { items: { include: { product: true } } },
+  // Restaurar stock si la orden pasa a cancelado (y no estaba ya cancelada)
+  const cancelando = body.status === 'cancelado' && existing.status !== 'cancelado'
+
+  const order = await prisma.$transaction(async (tx) => {
+    if (cancelando) {
+      for (const item of existing.items) {
+        await tx.product.update({
+          where: { id: item.productId },
+          data: { stock: { increment: item.quantity } },
+        })
+      }
+    }
+    return tx.order.update({
+      where: { id },
+      data,
+      include: { items: { include: { product: true } } },
+    })
   })
+
   return NextResponse.json({ order })
 }
 
