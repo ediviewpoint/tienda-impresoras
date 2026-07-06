@@ -130,93 +130,60 @@ export async function POST(req: NextRequest) {
   const shipping = subtotal >= FREE_SHIPPING_THRESHOLD ? 0 : SHIPPING_COST
   const total = Math.round((subtotal + shipping) * 100) / 100
 
-  // ── Reserva de stock + creación de orden ────────────────────────────────────
-  const decremented: typeof itemsData = []
+  // ── Transacción atómica: stock + orden ──────────────────────────────────────
+  // stockError se setea ANTES del throw para identificarlo en el catch externo
+  // aunque Prisma envuelva el error en su propio tipo al re-lanzarlo.
+  let stockError: string | null = null
   let order
   try {
-    for (const item of itemsData) {
-      const { count } = await prisma.product.updateMany({
-        where: {
-          id: item.productId,
-          inStock: true,
-          active: true,
-          stock: { gte: item.quantity },
-        },
-        data: { stock: { decrement: item.quantity } },
-      })
+    order = await prisma.$transaction(async (tx) => {
+      for (const item of itemsData) {
+        const { count } = await tx.product.updateMany({
+          where: {
+            id: item.productId,
+            inStock: true,
+            active: true,
+            stock: { gte: item.quantity },
+          },
+          data: { stock: { decrement: item.quantity } },
+        })
 
-      if (!count) {
-        for (const prev of decremented) {
-          await prisma.product.update({
-            where: { id: prev.productId },
-            data: { stock: { increment: prev.quantity } },
-          })
+        if (!count) {
+          const p = productMap.get(item.productId)!
+          stockError = `Stock insuficiente: "${p.name}" (solicitado: ${item.quantity})`
+          throw new Error(stockError)
         }
-        const p = productMap.get(item.productId)!
-        return NextResponse.json(
-          { error: `Stock insuficiente: "${p.name}" (solicitado: ${item.quantity})`, code: 'STOCK_INSUFICIENTE' },
-          { status: 409 }
-        )
       }
-      decremented.push(item)
-    }
 
-    const createdOrder = await prisma.order.create({
-      data: {
-        orderNumber: generateOrderNumber(),
-        status: body.status ?? 'pendiente',
-        tieneFactura,
-        subtotal,
-        shipping,
-        total,
-        paymentMethod: body.paymentMethod ?? 'manual',
-        notes: body.notes ?? null,
-        clientName: body.clientName,
-        clientEmail: body.clientEmail,
-        clientPhone: body.clientPhone ?? null,
-        clientAddress: body.clientAddress ?? null,
-        clientCity: body.clientCity ?? null,
-        clientState: body.clientState ?? null,
-        clientZip: body.clientZip ?? null,
-        userId: body.userId ?? null,
-      },
-    })
-
-    await prisma.orderItem.createMany({
-      data: itemsData.map(item => ({
-        orderId: createdOrder.id,
-        productId: item.productId,
-        quantity: item.quantity,
-        unitPrice: item.unitPrice,
-        total: item.total,
-      })),
-    })
-
-    order = await prisma.order.findUnique({
-      where: { id: createdOrder.id },
-      include: { items: { include: { product: true } } },
+      return tx.order.create({
+        data: {
+          orderNumber: generateOrderNumber(),
+          status: body.status ?? 'pendiente',
+          tieneFactura,
+          subtotal,
+          shipping,
+          total,
+          paymentMethod: body.paymentMethod ?? 'manual',
+          notes: body.notes ?? null,
+          clientName: body.clientName,
+          clientEmail: body.clientEmail,
+          clientPhone: body.clientPhone ?? null,
+          clientAddress: body.clientAddress ?? null,
+          clientCity: body.clientCity ?? null,
+          clientState: body.clientState ?? null,
+          clientZip: body.clientZip ?? null,
+          userId: body.userId ?? null,
+          items: { create: itemsData },
+        },
+        include: { items: { include: { product: true } } },
+      })
     })
   } catch (err) {
-    for (const item of decremented) {
-      await prisma.product.update({
-        where: { id: item.productId },
-        data: { stock: { increment: item.quantity } },
-      })
+    if (stockError) {
+      return NextResponse.json({ error: stockError, code: 'STOCK_INSUFICIENTE' }, { status: 409 })
     }
-    // DIAGNOSTIC: expose actual error for debugging (remove after issue identified)
-    return NextResponse.json(
-      {
-        error: err instanceof Error ? err.message : String(err),
-        errorName: err instanceof Error ? err.name : undefined,
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        errorCode: (err as any)?.code,
-        decrementsAttempted: decremented.length,
-      },
-      { status: 500 }
-    )
+    throw err
   }
-
-  if (!order) throw new Error('Order created but could not be fetched')
 
   if (process.env.RESEND_API_KEY) {
     const emailItems = order.items.map(i => ({
