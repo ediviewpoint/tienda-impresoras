@@ -1,13 +1,12 @@
 import { PrismaClient, Prisma } from '@/lib/generated/prisma/client'
-import { PrismaNeonHttp } from '@prisma/adapter-neon'
+import { Pool } from '@neondatabase/serverless'
+import { PrismaNeon } from '@prisma/adapter-neon'
 
 // Serialize Decimal fields as numbers in JSON responses (not strings)
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 ;(Prisma.Decimal.prototype as any).toJSON = function () { return this.toNumber() }
 
 const url = process.env.DATABASE_URL ?? ''
-// Prefer unpooled URL for Neon HTTP driver (direct connection)
-const neonUrl = process.env.DATABASE_URL_UNPOOLED ?? url
 
 function createPrisma() {
   if (url.startsWith('file:') || url === '') {
@@ -17,8 +16,10 @@ function createPrisma() {
     return new PrismaClient({ adapter })
   }
 
-  // Production — Neon PostgreSQL via HTTP (no WebSocket, works in all serverless envs)
-  const adapter = new PrismaNeonHttp(neonUrl, {})
+  // Production — Neon PostgreSQL via WebSocket Pool (supports writes + transactions)
+  // PrismaNeonHttp is read-only in Prisma v7 (wraps all writes in TX internally)
+  const pool = new Pool({ connectionString: url })
+  const adapter = new PrismaNeon(pool)
   return new PrismaClient({ adapter })
 }
 
