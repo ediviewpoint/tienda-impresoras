@@ -131,40 +131,36 @@ export async function POST(req: NextRequest) {
   const total = Math.round((subtotal + shipping) * 100) / 100
 
   // ── Reserva de stock + creación de orden ────────────────────────────────────
-  // Usamos updateMany con condiciones en lugar de $executeRaw — es una API Prisma
-  // nativa compatible con PrismaNeonHttp. Lógica de compensación: si falla el stock
-  // de un ítem, incrementamos de vuelta los ya decrementados.
   const decremented: typeof itemsData = []
-
-  for (const item of itemsData) {
-    const { count } = await prisma.product.updateMany({
-      where: {
-        id: item.productId,
-        inStock: true,
-        active: true,
-        stock: { gte: item.quantity },
-      },
-      data: { stock: { decrement: item.quantity } },
-    })
-
-    if (count === 0) {
-      for (const prev of decremented) {
-        await prisma.product.update({
-          where: { id: prev.productId },
-          data: { stock: { increment: prev.quantity } },
-        })
-      }
-      const p = productMap.get(item.productId)!
-      return NextResponse.json(
-        { error: `Stock insuficiente: "${p.name}" (solicitado: ${item.quantity})`, code: 'STOCK_INSUFICIENTE' },
-        { status: 409 }
-      )
-    }
-    decremented.push(item)
-  }
-
   let order
   try {
+    for (const item of itemsData) {
+      const { count } = await prisma.product.updateMany({
+        where: {
+          id: item.productId,
+          inStock: true,
+          active: true,
+          stock: { gte: item.quantity },
+        },
+        data: { stock: { decrement: item.quantity } },
+      })
+
+      if (count === 0) {
+        for (const prev of decremented) {
+          await prisma.product.update({
+            where: { id: prev.productId },
+            data: { stock: { increment: prev.quantity } },
+          })
+        }
+        const p = productMap.get(item.productId)!
+        return NextResponse.json(
+          { error: `Stock insuficiente: "${p.name}" (solicitado: ${item.quantity})`, code: 'STOCK_INSUFICIENTE' },
+          { status: 409 }
+        )
+      }
+      decremented.push(item)
+    }
+
     order = await prisma.order.create({
       data: {
         orderNumber: generateOrderNumber(),
@@ -194,7 +190,16 @@ export async function POST(req: NextRequest) {
         data: { stock: { increment: item.quantity } },
       })
     }
-    throw err
+    // DIAGNOSTIC: return error details instead of rethrowing to identify the root cause
+    return NextResponse.json(
+      {
+        error: err instanceof Error ? err.message : String(err),
+        errorName: err instanceof Error ? err.name : undefined,
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        errorCode: (err as any)?.code,
+      },
+      { status: 500 }
+    )
   }
 
   if (process.env.RESEND_API_KEY) {
