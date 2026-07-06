@@ -131,45 +131,36 @@ export async function POST(req: NextRequest) {
   const total = Math.round((subtotal + shipping) * 100) / 100
 
   // ── Reserva de stock + creación de orden ────────────────────────────────────
-  // PrismaNeonHttp no soporta transacciones. Usamos queries individuales:
-  // 1. updateMany con condiciones (stock, inStock, active) — single UPDATE, sin TX
-  // 2. order.create sin items nested — single INSERT, sin TX
-  // 3. orderItem.createMany — single multi-row INSERT, sin TX
-  // 4. order.findUnique con includes — para retornar la respuesta completa
-  // Compensación: si un ítem falla, incrementamos el stock de los ya decrementados.
   const decremented: typeof itemsData = []
-
-  for (const item of itemsData) {
-    const { count } = await prisma.product.updateMany({
-      where: {
-        id: item.productId,
-        inStock: true,
-        active: true,
-        stock: { gte: item.quantity },
-      },
-      data: { stock: { decrement: item.quantity } },
-    })
-
-    // updateMany retorna BigInt en Neon HTTP: usar !count (falsy para 0 y BigInt(0))
-    if (!count) {
-      for (const prev of decremented) {
-        await prisma.product.update({
-          where: { id: prev.productId },
-          data: { stock: { increment: prev.quantity } },
-        })
-      }
-      const p = productMap.get(item.productId)!
-      return NextResponse.json(
-        { error: `Stock insuficiente: "${p.name}" (solicitado: ${item.quantity})`, code: 'STOCK_INSUFICIENTE' },
-        { status: 409 }
-      )
-    }
-    decremented.push(item)
-  }
-
-  // Crear orden sin items nested (nested creates usan TX interna, no compatible con Neon HTTP)
   let order
   try {
+    for (const item of itemsData) {
+      const { count } = await prisma.product.updateMany({
+        where: {
+          id: item.productId,
+          inStock: true,
+          active: true,
+          stock: { gte: item.quantity },
+        },
+        data: { stock: { decrement: item.quantity } },
+      })
+
+      if (!count) {
+        for (const prev of decremented) {
+          await prisma.product.update({
+            where: { id: prev.productId },
+            data: { stock: { increment: prev.quantity } },
+          })
+        }
+        const p = productMap.get(item.productId)!
+        return NextResponse.json(
+          { error: `Stock insuficiente: "${p.name}" (solicitado: ${item.quantity})`, code: 'STOCK_INSUFICIENTE' },
+          { status: 409 }
+        )
+      }
+      decremented.push(item)
+    }
+
     const createdOrder = await prisma.order.create({
       data: {
         orderNumber: generateOrderNumber(),
@@ -212,7 +203,17 @@ export async function POST(req: NextRequest) {
         data: { stock: { increment: item.quantity } },
       })
     }
-    throw err
+    // DIAGNOSTIC: expose actual error for debugging (remove after issue identified)
+    return NextResponse.json(
+      {
+        error: err instanceof Error ? err.message : String(err),
+        errorName: err instanceof Error ? err.name : undefined,
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        errorCode: (err as any)?.code,
+        decrementsAttempted: decremented.length,
+      },
+      { status: 500 }
+    )
   }
 
   if (!order) throw new Error('Order created but could not be fetched')
