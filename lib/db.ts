@@ -1,5 +1,4 @@
 import { PrismaClient, Prisma } from '@/lib/generated/prisma/client'
-import { Pool } from '@neondatabase/serverless'
 import { PrismaNeon } from '@prisma/adapter-neon'
 
 // Serialize Decimal fields as numbers in JSON responses (not strings)
@@ -17,9 +16,8 @@ function createPrisma() {
   }
 
   // Production — Neon PostgreSQL via WebSocket Pool (supports writes + transactions)
-  // PrismaNeonHttp is read-only in Prisma v7 (wraps all writes in TX internally)
-  const pool = new Pool({ connectionString: url })
-  const adapter = new PrismaNeon(pool)
+  // PrismaNeonHttp is read-only in Prisma v7; PrismaNeon creates its Pool internally
+  const adapter = new PrismaNeon({ connectionString: url })
   return new PrismaClient({ adapter })
 }
 
