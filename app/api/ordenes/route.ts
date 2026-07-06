@@ -131,37 +131,46 @@ export async function POST(req: NextRequest) {
   const total = Math.round((subtotal + shipping) * 100) / 100
 
   // ── Reserva de stock + creación de orden ────────────────────────────────────
+  // PrismaNeonHttp no soporta transacciones. Usamos queries individuales:
+  // 1. updateMany con condiciones (stock, inStock, active) — single UPDATE, sin TX
+  // 2. order.create sin items nested — single INSERT, sin TX
+  // 3. orderItem.createMany — single multi-row INSERT, sin TX
+  // 4. order.findUnique con includes — para retornar la respuesta completa
+  // Compensación: si un ítem falla, incrementamos el stock de los ya decrementados.
   const decremented: typeof itemsData = []
+
+  for (const item of itemsData) {
+    const { count } = await prisma.product.updateMany({
+      where: {
+        id: item.productId,
+        inStock: true,
+        active: true,
+        stock: { gte: item.quantity },
+      },
+      data: { stock: { decrement: item.quantity } },
+    })
+
+    // updateMany retorna BigInt en Neon HTTP: usar !count (falsy para 0 y BigInt(0))
+    if (!count) {
+      for (const prev of decremented) {
+        await prisma.product.update({
+          where: { id: prev.productId },
+          data: { stock: { increment: prev.quantity } },
+        })
+      }
+      const p = productMap.get(item.productId)!
+      return NextResponse.json(
+        { error: `Stock insuficiente: "${p.name}" (solicitado: ${item.quantity})`, code: 'STOCK_INSUFICIENTE' },
+        { status: 409 }
+      )
+    }
+    decremented.push(item)
+  }
+
+  // Crear orden sin items nested (nested creates usan TX interna, no compatible con Neon HTTP)
   let order
   try {
-    for (const item of itemsData) {
-      const { count } = await prisma.product.updateMany({
-        where: {
-          id: item.productId,
-          inStock: true,
-          active: true,
-          stock: { gte: item.quantity },
-        },
-        data: { stock: { decrement: item.quantity } },
-      })
-
-      if (count === 0) {
-        for (const prev of decremented) {
-          await prisma.product.update({
-            where: { id: prev.productId },
-            data: { stock: { increment: prev.quantity } },
-          })
-        }
-        const p = productMap.get(item.productId)!
-        return NextResponse.json(
-          { error: `Stock insuficiente: "${p.name}" (solicitado: ${item.quantity})`, code: 'STOCK_INSUFICIENTE' },
-          { status: 409 }
-        )
-      }
-      decremented.push(item)
-    }
-
-    order = await prisma.order.create({
+    const createdOrder = await prisma.order.create({
       data: {
         orderNumber: generateOrderNumber(),
         status: body.status ?? 'pendiente',
@@ -179,8 +188,21 @@ export async function POST(req: NextRequest) {
         clientState: body.clientState ?? null,
         clientZip: body.clientZip ?? null,
         userId: body.userId ?? null,
-        items: { create: itemsData },
       },
+    })
+
+    await prisma.orderItem.createMany({
+      data: itemsData.map(item => ({
+        orderId: createdOrder.id,
+        productId: item.productId,
+        quantity: item.quantity,
+        unitPrice: item.unitPrice,
+        total: item.total,
+      })),
+    })
+
+    order = await prisma.order.findUnique({
+      where: { id: createdOrder.id },
       include: { items: { include: { product: true } } },
     })
   } catch (err) {
@@ -190,17 +212,10 @@ export async function POST(req: NextRequest) {
         data: { stock: { increment: item.quantity } },
       })
     }
-    // DIAGNOSTIC: return error details instead of rethrowing to identify the root cause
-    return NextResponse.json(
-      {
-        error: err instanceof Error ? err.message : String(err),
-        errorName: err instanceof Error ? err.name : undefined,
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        errorCode: (err as any)?.code,
-      },
-      { status: 500 }
-    )
+    throw err
   }
+
+  if (!order) throw new Error('Order created but could not be fetched')
 
   if (process.env.RESEND_API_KEY) {
     const emailItems = order.items.map(i => ({
