@@ -131,7 +131,10 @@ export async function POST(req: NextRequest) {
   const total = Math.round((subtotal + shipping) * 100) / 100
 
   // ── Transacción: stock + orden atómicos ──────────────────────────────────────
+  // stockError is set inside the transaction BEFORE throwing so the outer catch
+  // can identify it reliably even if Prisma wraps the error in its own type.
   let order
+  let stockError: string | null = null
   try {
     order = await prisma.$transaction(async (tx) => {
       for (const item of itemsData) {
@@ -144,12 +147,10 @@ export async function POST(req: NextRequest) {
             AND  "active"  = true
             AND  "stock"  >= ${item.quantity}
         `
-        if (affected === 0) {
+        if (Number(affected) === 0) {
           const p = productMap.get(item.productId)!
-          throw Object.assign(
-            new Error(`Stock insuficiente: "${p.name}" (solicitado: ${item.quantity})`),
-            { code: 'STOCK_INSUFICIENTE' }
-          )
+          stockError = `Stock insuficiente: "${p.name}" (solicitado: ${item.quantity})`
+          throw new Error(stockError)
         }
       }
 
@@ -177,9 +178,10 @@ export async function POST(req: NextRequest) {
       })
     })
   } catch (err) {
-    if (err instanceof Error && (err as NodeJS.ErrnoException & { code?: string }).code === 'STOCK_INSUFICIENTE') {
-      return NextResponse.json({ error: err.message, code: 'STOCK_INSUFICIENTE' }, { status: 409 })
+    if (stockError) {
+      return NextResponse.json({ error: stockError, code: 'STOCK_INSUFICIENTE' }, { status: 409 })
     }
+    console.error('[POST /api/ordenes] transaction error:', err)
     throw err
   }
 
