@@ -130,58 +130,66 @@ export async function POST(req: NextRequest) {
   const shipping = subtotal >= FREE_SHIPPING_THRESHOLD ? 0 : SHIPPING_COST
   const total = Math.round((subtotal + shipping) * 100) / 100
 
-  // ── Transacción: stock + orden atómicos ──────────────────────────────────────
-  // stockError is set inside the transaction BEFORE throwing so the outer catch
-  // can identify it reliably even if Prisma wraps the error in its own type.
-  let order
-  let stockError: string | null = null
-  try {
-    order = await prisma.$transaction(async (tx) => {
-      for (const item of itemsData) {
-        // UPDATE atómico: descuenta solo si inStock=true, active=true y stock suficiente.
-        const affected = await tx.$executeRaw`
-          UPDATE "Product"
-          SET    "stock" = "stock" - ${item.quantity}
-          WHERE  "id"      = ${item.productId}
-            AND  "inStock" = true
-            AND  "active"  = true
-            AND  "stock"  >= ${item.quantity}
-        `
-        if (Number(affected) === 0) {
-          const p = productMap.get(item.productId)!
-          stockError = `Stock insuficiente: "${p.name}" (solicitado: ${item.quantity})`
-          throw new Error(stockError)
-        }
-      }
+  // ── Reserva de stock + creación de orden ────────────────────────────────────
+  // PrismaNeonHttp (HTTP adapter) no soporta interactive transactions con lógica
+  // condicional sobre resultados intermedios. Usamos queries individuales con
+  // compensación: si falla el stock de un ítem, restauramos los ya decrementados.
+  const decremented: typeof itemsData = []
 
-      return tx.order.create({
-        data: {
-          orderNumber: generateOrderNumber(),
-          status: body.status ?? 'pendiente',
-          tieneFactura,
-          subtotal,
-          shipping,
-          total,
-          paymentMethod: body.paymentMethod ?? 'manual',
-          notes: body.notes ?? null,
-          clientName: body.clientName,
-          clientEmail: body.clientEmail,
-          clientPhone: body.clientPhone ?? null,
-          clientAddress: body.clientAddress ?? null,
-          clientCity: body.clientCity ?? null,
-          clientState: body.clientState ?? null,
-          clientZip: body.clientZip ?? null,
-          userId: body.userId ?? null,
-          items: { create: itemsData },
-        },
-        include: { items: { include: { product: true } } },
-      })
+  for (const item of itemsData) {
+    const affected = await prisma.$executeRaw`
+      UPDATE "Product"
+      SET    "stock" = "stock" - ${item.quantity}
+      WHERE  "id"      = ${item.productId}
+        AND  "inStock" = true
+        AND  "active"  = true
+        AND  "stock"  >= ${item.quantity}
+    `
+    if (Number(affected) === 0) {
+      // Compensar: restaurar el stock ya decrementado en ítems anteriores
+      for (const prev of decremented) {
+        await prisma.$executeRaw`
+          UPDATE "Product" SET "stock" = "stock" + ${prev.quantity} WHERE "id" = ${prev.productId}
+        `
+      }
+      const p = productMap.get(item.productId)!
+      return NextResponse.json(
+        { error: `Stock insuficiente: "${p.name}" (solicitado: ${item.quantity})`, code: 'STOCK_INSUFICIENTE' },
+        { status: 409 }
+      )
+    }
+    decremented.push(item)
+  }
+
+  let order
+  try {
+    order = await prisma.order.create({
+      data: {
+        orderNumber: generateOrderNumber(),
+        status: body.status ?? 'pendiente',
+        tieneFactura,
+        subtotal,
+        shipping,
+        total,
+        paymentMethod: body.paymentMethod ?? 'manual',
+        notes: body.notes ?? null,
+        clientName: body.clientName,
+        clientEmail: body.clientEmail,
+        clientPhone: body.clientPhone ?? null,
+        clientAddress: body.clientAddress ?? null,
+        clientCity: body.clientCity ?? null,
+        clientState: body.clientState ?? null,
+        clientZip: body.clientZip ?? null,
+        userId: body.userId ?? null,
+        items: { create: itemsData },
+      },
+      include: { items: { include: { product: true } } },
     })
   } catch (err) {
-    if (stockError) {
-      return NextResponse.json({ error: stockError, code: 'STOCK_INSUFICIENTE' }, { status: 409 })
+    // Compensar: restaurar todo el stock si la creación de la orden falla
+    for (const item of decremented) {
+      await prisma.$executeRaw`UPDATE "Product" SET "stock" = "stock" + ${item.quantity} WHERE "id" = ${item.productId}`
     }
-    console.error('[POST /api/ordenes] transaction error:', err)
     throw err
   }
 
