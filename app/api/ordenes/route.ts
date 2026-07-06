@@ -5,6 +5,7 @@ import OrderConfirmation from '@/emails/OrderConfirmation'
 import AdminNewOrder from '@/emails/AdminNewOrder'
 import { requireSession, isAdmin } from '@/lib/auth-guards'
 import { randomInt } from 'crypto'
+import { IVA_RATE, FREE_SHIPPING_THRESHOLD, SHIPPING_COST } from '@/lib/utils'
 
 function generateOrderNumber() {
   const d = new Date()
@@ -23,7 +24,6 @@ export async function GET(req: NextRequest) {
   const limit = Math.min(Number(searchParams.get('limit') ?? 50), 100)
   const offset = Number(searchParams.get('offset') ?? 0)
 
-  // Admin ve todas las órdenes; usuario normal ve solo las suyas
   const userWhere = isAdmin(session!.user.email)
     ? {}
     : {
@@ -53,63 +53,102 @@ export async function GET(req: NextRequest) {
 }
 
 export async function POST(req: NextRequest) {
-  // El checkout es público: clientes compran sin necesidad de cuenta
   const body = await req.json()
 
+  // ── Validación de campos de contacto ────────────────────────────────────────
   const required = ['clientName', 'clientEmail', 'items']
   for (const field of required) {
     if (!body[field]) {
       return NextResponse.json({ error: `Campo requerido: ${field}` }, { status: 400 })
     }
   }
+
+  // ── Validación estricta de items ─────────────────────────────────────────────
   if (!Array.isArray(body.items) || body.items.length === 0) {
     return NextResponse.json({ error: 'El pedido debe tener al menos un producto' }, { status: 400 })
   }
+  if (body.items.length > 30) {
+    return NextResponse.json({ error: 'Máximo 30 productos por pedido' }, { status: 400 })
+  }
+  for (const item of body.items) {
+    if (typeof item.productId !== 'string' || item.productId.trim() === '') {
+      return NextResponse.json({ error: 'productId inválido en uno de los ítems' }, { status: 400 })
+    }
+    const qty = Number(item.quantity)
+    if (!Number.isInteger(qty) || qty < 1 || qty > 50) {
+      return NextResponse.json({
+        error: `Cantidad inválida (productId: "${item.productId}"): debe ser entero entre 1 y 50`
+      }, { status: 400 })
+    }
+  }
 
-  const requestedItems: { productId: string; quantity: number; unitPrice?: number }[] = body.items
-
-  // Calcular montos fuera de la transacción (no requieren bloqueo)
-  const productIds = requestedItems.map(i => i.productId)
+  // ── Cargar productos desde BD — el precio SIEMPRE viene de aquí, nunca del cliente ──
+  const productIds: string[] = body.items.map((i: { productId: string }) => i.productId)
   const products = await prisma.product.findMany({ where: { id: { in: productIds } } })
   if (products.length !== productIds.length) {
     return NextResponse.json({ error: 'Uno o más productos no existen' }, { status: 400 })
   }
 
+  // Verificar que todos los productos estén activos
+  const inactive = products.find(p => !p.active)
+  if (inactive) {
+    return NextResponse.json(
+      { error: `Producto no disponible: "${inactive.name}"` },
+      { status: 409 }
+    )
+  }
+
+  // ── Calcular precios 100% server-side ────────────────────────────────────────
+  // El cliente SOLO manda productId y quantity. unitPrice y totales los calcula el servidor.
+  const tieneFactura = body.tieneFactura !== false
+
   const productMap = new Map(products.map(p => [p.id, p]))
+  const requestedItems: { productId: string; quantity: number }[] = body.items.map(
+    (i: { productId: string; quantity: number }) => ({
+      productId: i.productId,
+      quantity: Number(i.quantity),
+    })
+  )
+
   const itemsData = requestedItems.map(item => {
     const product = productMap.get(item.productId)!
-    const unitPrice = Number(item.unitPrice ?? product.price)
+    const basePrice = Number(product.price)
+    // Precio final según factura, calculado en el servidor
+    const unitPrice = tieneFactura
+      ? basePrice
+      : Math.round((basePrice / (1 + IVA_RATE)) * 100) / 100
     return {
       productId: item.productId,
-      quantity: Number(item.quantity),
+      quantity: item.quantity,
       unitPrice,
-      total: unitPrice * Number(item.quantity),
+      total: Math.round(unitPrice * item.quantity * 100) / 100,
     }
   })
 
-  const subtotal = itemsData.reduce((sum, i) => sum + i.total, 0)
-  const shipping = Number(body.shipping ?? 0)
-  const total = subtotal + shipping
+  const subtotal = Math.round(itemsData.reduce((sum, i) => sum + i.total, 0) * 100) / 100
+  // Envío calculado server-side con las mismas constantes que el frontend
+  const shipping = subtotal >= FREE_SHIPPING_THRESHOLD ? 0 : SHIPPING_COST
+  const total = Math.round((subtotal + shipping) * 100) / 100
 
-  // Transacción: verificar stock + decrementar + crear orden de forma atómica
+  // ── Transacción: stock + orden atómicos ──────────────────────────────────────
   let order
   try {
     order = await prisma.$transaction(async (tx) => {
-      // UPDATE atómico: descuenta solo si hay stock suficiente e inStock=true.
-      // Retorna 0 filas si no hay stock → lanza error sin necesidad de SELECT previo.
       for (const item of itemsData) {
+        // UPDATE atómico: descuenta solo si inStock=true, active=true y stock suficiente.
         const affected = await tx.$executeRaw`
           UPDATE "Product"
-          SET "stock" = "stock" - ${item.quantity}
-          WHERE "id" = ${item.productId}
-            AND "inStock" = true
-            AND "stock" >= ${item.quantity}
+          SET    "stock" = "stock" - ${item.quantity}
+          WHERE  "id"      = ${item.productId}
+            AND  "inStock" = true
+            AND  "active"  = true
+            AND  "stock"  >= ${item.quantity}
         `
         if (affected === 0) {
           const p = productMap.get(item.productId)!
           throw Object.assign(
             new Error(`Stock insuficiente: "${p.name}" (solicitado: ${item.quantity})`),
-            { code: 'STOCK_INSUFICIENTE', productName: p.name }
+            { code: 'STOCK_INSUFICIENTE' }
           )
         }
       }
@@ -118,7 +157,7 @@ export async function POST(req: NextRequest) {
         data: {
           orderNumber: generateOrderNumber(),
           status: body.status ?? 'pendiente',
-          tieneFactura: body.tieneFactura ?? true,
+          tieneFactura,
           subtotal,
           shipping,
           total,

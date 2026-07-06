@@ -89,6 +89,22 @@ export async function DELETE(_req: NextRequest, { params }: Params) {
   const existing = await prisma.order.findUnique({ where: { id } })
   if (!existing) return NextResponse.json({ error: 'Orden no encontrada' }, { status: 404 })
 
-  await prisma.order.delete({ where: { id } })
-  return NextResponse.json({ success: true })
+  // Solo se permite eliminar órdenes ya canceladas: la cancelación restauró el stock,
+  // así que el delete no deja stock fantasma.
+  if (existing.status !== 'cancelado') {
+    return NextResponse.json(
+      { error: 'Solo se pueden eliminar órdenes canceladas. Cancela la orden primero para restaurar el stock.' },
+      { status: 409 }
+    )
+  }
+
+  try {
+    await prisma.order.delete({ where: { id } })
+    return NextResponse.json({ success: true })
+  } catch (err) {
+    return NextResponse.json(
+      { error: err instanceof Error ? err.message : 'Error al eliminar la orden' },
+      { status: 500 }
+    )
+  }
 }

@@ -70,6 +70,11 @@ export async function POST(req: NextRequest) {
     }
   }
 
+  const price = Number(body.price)
+  if (!Number.isFinite(price) || price <= 0) {
+    return NextResponse.json({ error: 'El precio debe ser un número positivo' }, { status: 400 })
+  }
+
   const existing = await prisma.product.findFirst({
     where: { OR: [{ slug: body.slug }, { sku: body.sku }] },
   })
@@ -90,7 +95,7 @@ export async function POST(req: NextRequest) {
         name: body.name,
         brandId: brand.id,
         categoryId: category.id,
-        price: Number(body.price),
+        price,
         originalPrice: body.originalPrice ? Number(body.originalPrice) : null,
         rating: body.rating ? Number(body.rating) : 5,
         reviewCount: body.reviewCount ? Number(body.reviewCount) : 0,

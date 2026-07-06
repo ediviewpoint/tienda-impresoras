@@ -26,7 +26,13 @@ export async function PATCH(req: NextRequest, { params }: Params) {
     const data: Record<string, unknown> = {}
 
     if ('name' in body) data.name = body.name
-    if ('price' in body) data.price = Number(body.price)
+    if ('price' in body) {
+      const price = Number(body.price)
+      if (!Number.isFinite(price) || price <= 0) {
+        return NextResponse.json({ error: 'El precio debe ser un número positivo' }, { status: 400 })
+      }
+      data.price = price
+    }
     if ('originalPrice' in body) data.originalPrice = body.originalPrice ? Number(body.originalPrice) : null
     if ('rating' in body) data.rating = Number(body.rating)
     if ('reviewCount' in body) data.reviewCount = Number(body.reviewCount)
@@ -83,6 +89,20 @@ export async function DELETE(_req: NextRequest, { params }: Params) {
   const existing = await prisma.product.findUnique({ where: { id } })
   if (!existing) return NextResponse.json({ error: 'Producto no encontrado' }, { status: 404 })
 
-  await prisma.product.delete({ where: { id } })
-  return NextResponse.json({ success: true })
+  try {
+    await prisma.product.delete({ where: { id } })
+    return NextResponse.json({ success: true })
+  } catch (err) {
+    // P2003: foreign key constraint (tiene OrderItems asociados)
+    if (typeof err === 'object' && err !== null && (err as Record<string, unknown>).code === 'P2003') {
+      return NextResponse.json(
+        { error: 'No se puede eliminar: el producto tiene órdenes históricas asociadas. Desactívalo en su lugar.' },
+        { status: 409 }
+      )
+    }
+    return NextResponse.json(
+      { error: err instanceof Error ? err.message : 'Error al eliminar el producto' },
+      { status: 500 }
+    )
+  }
 }
