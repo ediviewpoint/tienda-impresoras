@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react'
 import Image from 'next/image'
 import { formatPrice } from '@/lib/utils'
 import type { Product, Brand, Category, ProductImage } from '@/lib/generated/prisma/client'
+import ImageUploader, { type ImageEntry } from '@/components/admin/ImageUploader'
 
 type FullProduct = Product & { brand: Brand; category: Category; images: ProductImage[] }
 
@@ -26,7 +27,7 @@ type EditForm = {
   category: string
   description: string
   featuresText: string
-  imageUrl: string
+  images: ImageEntry[]
   stock: number
   inStock: boolean
   active: boolean
@@ -37,7 +38,7 @@ type EditForm = {
 const EMPTY_FORM: EditForm = {
   name: '', brand: '', brandColor: '#1852D9', price: 0, originalPrice: undefined,
   rating: 5, reviewCount: 0, badge: null, category: 'laser',
-  description: '', featuresText: '', imageUrl: '', stock: 0, inStock: true, active: true, sku: '', slug: '',
+  description: '', featuresText: '', images: [], stock: 0, inStock: true, active: true, sku: '', slug: '',
 }
 
 function toSlug(str: string) {
@@ -91,7 +92,7 @@ export default function AdminProducts({ initialProducts }: Props) {
       category: p.category.slug,
       description: p.description,
       featuresText,
-      imageUrl: p.images[0]?.url ?? '',
+      images: p.images.map((img, i) => ({ url: img.url, order: img.order ?? i })),
       inStock: p.inStock,
       active: p.active,
       sku: p.sku,
@@ -114,7 +115,7 @@ export default function AdminProducts({ initialProducts }: Props) {
       const payload = {
         ...editing,
         features,
-        image: editing.imageUrl || undefined,
+        images: editing.images.filter(i => i.url && !i.uploading && !i.error).map(i => i.url),
         slug: editing.slug || toSlug(editing.name ?? ''),
       }
 
@@ -238,19 +239,11 @@ export default function AdminProducts({ initialProducts }: Props) {
             </h2>
 
             <div className="space-y-4">
-              {editing.imageUrl && (
-                <div className="flex justify-center">
-                  <Image src={editing.imageUrl} alt="preview" width={120} height={90} className="rounded-xl object-cover border border-gray-100" unoptimized />
-                </div>
-              )}
-
               <div>
-                <label className="text-xs font-semibold text-gray-500 mb-1 block">URL de imagen</label>
-                <input
-                  value={editing.imageUrl}
-                  onChange={e => setField('imageUrl', e.target.value)}
-                  placeholder="https://…"
-                  className="w-full h-10 border border-gray-200 rounded-lg px-3 text-sm outline-none focus:border-[#1852D9] transition-all"
+                <label className="text-xs font-semibold text-gray-500 mb-2 block">Imágenes del producto</label>
+                <ImageUploader
+                  images={editing.images}
+                  onChange={imgs => setField('images', imgs)}
                 />
               </div>
 

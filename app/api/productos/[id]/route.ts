@@ -1,7 +1,12 @@
 import { NextRequest, NextResponse } from 'next/server'
+import { del } from '@vercel/blob'
 import { prisma } from '@/lib/db'
 import { PRODUCT_INCLUDE } from '@/lib/db-utils'
 import { requireAdmin } from '@/lib/auth-guards'
+
+function isBlobUrl(url: string) {
+  return url.includes('blob.vercel-storage.com')
+}
 
 type Params = { params: Promise<{ id: string }> }
 
@@ -68,10 +73,17 @@ export async function PATCH(req: NextRequest, { params }: Params) {
         ? body.images
         : (body.image ? [body.image] : [])
 
+      const existing = await prisma.productImage.findMany({ where: { productId: id } })
+      const removedBlobUrls = existing
+        .map(img => img.url)
+        .filter(url => !imageUrls.includes(url) && isBlobUrl(url))
+
       await prisma.productImage.deleteMany({ where: { productId: id } })
       data.images = {
         create: imageUrls.map((url: string, i: number) => ({ url, order: i })),
       }
+
+      if (removedBlobUrls.length > 0) del(removedBlobUrls).catch(() => {})
     }
 
     const product = await prisma.product.update({ where: { id }, data, include: PRODUCT_INCLUDE })
@@ -90,7 +102,12 @@ export async function DELETE(_req: NextRequest, { params }: Params) {
   if (!existing) return NextResponse.json({ error: 'Producto no encontrado' }, { status: 404 })
 
   try {
+    const productImages = await prisma.productImage.findMany({ where: { productId: id } })
+    const blobUrls = productImages.map(img => img.url).filter(isBlobUrl)
+
     await prisma.product.delete({ where: { id } })
+
+    if (blobUrls.length > 0) del(blobUrls).catch(() => {})
     return NextResponse.json({ success: true })
   } catch (err) {
     // P2003: foreign key constraint (tiene OrderItems asociados)
