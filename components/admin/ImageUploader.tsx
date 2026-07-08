@@ -137,7 +137,7 @@ export default function ImageUploader({ images, onChange, maxImages = 8 }: Props
             <div key={i} className="relative group aspect-square rounded-lg overflow-hidden border border-gray-200 bg-gray-50">
               {img.uploading ? (
                 <div className="absolute inset-0 flex items-center justify-center">
-                  <div className="w-5 h-5 border-2 border-[#1852D9] border-t-transparent rounded-full animate-spin" />
+                  <div className="w-5 h-5 border-2 border-primary border-t-transparent rounded-full animate-spin" />
                 </div>
               ) : img.error ? (
                 <div className="absolute inset-0 flex items-center justify-center p-1">
@@ -176,7 +176,7 @@ export default function ImageUploader({ images, onChange, maxImages = 8 }: Props
               )}
 
               {i === 0 && !img.uploading && img.url && (
-                <span className="absolute top-1 left-1 text-[9px] font-bold bg-[#1852D9] text-white px-1 rounded">
+                <span className="absolute top-1 left-1 text-[9px] font-bold bg-primary text-white px-1 rounded">
                   Principal
                 </span>
               )}
@@ -192,11 +192,11 @@ export default function ImageUploader({ images, onChange, maxImages = 8 }: Props
           onDrop={e => { e.preventDefault(); setDragging(false); handleFiles(e.dataTransfer.files) }}
           onClick={() => inputRef.current?.click()}
           className={`border-2 border-dashed rounded-lg p-4 text-center cursor-pointer transition-colors ${
-            dragging ? 'border-[#1852D9] bg-blue-50' : 'border-gray-200 hover:border-[#1852D9] hover:bg-gray-50'
+            dragging ? 'border-primary bg-primary-light' : 'border-gray-200 hover:border-primary hover:bg-gray-50'
           }`}
         >
           <p className="text-sm text-gray-500">
-            Arrastra imágenes aquí o <span className="text-[#1852D9] font-semibold">selecciona archivos</span>
+            Arrastra imágenes aquí o <span className="text-primary font-semibold">selecciona archivos</span>
           </p>
           <p className="text-xs text-gray-400 mt-1">
             JPEG, PNG, WebP, SVG · máx. 4 MB · hasta {maxImages} imágenes

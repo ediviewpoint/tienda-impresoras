@@ -166,11 +166,11 @@ export default function AdminProducts({ initialProducts }: Props) {
             value={filter}
             onChange={e => setFilter(e.target.value)}
             placeholder="Buscar…"
-            className="h-9 border border-gray-200 rounded-lg px-3 text-sm outline-none focus:border-[#1852D9] w-48 transition-all"
+            className="h-9 border border-gray-200 rounded-lg px-3 text-sm outline-none focus:border-primary w-48 transition-all"
           />
           <button
             onClick={openNew}
-            className="h-9 px-4 rounded-lg bg-[#1852D9] text-white text-sm font-semibold hover:bg-blue-700 transition-colors flex items-center gap-2"
+            className="h-9 px-4 rounded-lg bg-primary text-white text-sm font-semibold hover:bg-primary-dark transition-colors flex items-center gap-2"
           >
             <span className="text-lg leading-none">+</span> Nuevo producto
           </button>
@@ -208,20 +208,20 @@ export default function AdminProducts({ initialProducts }: Props) {
                 </td>
                 <td className="px-4 py-3 font-semibold">{formatPrice(Number(p.price))}</td>
                 <td className="px-4 py-3">
-                  <span className={`text-xs font-semibold px-2 py-0.5 rounded-full ${p.stock > 0 && p.inStock ? 'bg-emerald-100 text-emerald-700' : 'bg-red-100 text-red-700'}`}>
+                  <span className={`text-xs font-semibold px-2 py-0.5 rounded-full ${p.stock > 0 && p.inStock ? 'bg-success-bg text-success' : 'bg-error-bg text-error'}`}>
                     {p.stock > 0 && p.inStock ? `${p.stock} uds.` : 'Agotado'}
                   </span>
                 </td>
                 <td className="px-4 py-3">
                   <button
                     onClick={() => handleToggleActive(p)}
-                    className={`w-10 h-5 rounded-full transition-colors relative ${p.active ? 'bg-[#1852D9]' : 'bg-gray-200'}`}
+                    className={`w-10 h-5 rounded-full transition-colors relative ${p.active ? 'bg-primary' : 'bg-gray-200'}`}
                   >
                     <span className={`absolute top-0.5 w-4 h-4 bg-white rounded-full shadow transition-all ${p.active ? 'left-5' : 'left-0.5'}`} />
                   </button>
                 </td>
                 <td className="px-4 py-3">
-                  <button onClick={() => openEdit(p)} className="text-xs font-semibold text-[#1852D9] hover:underline">
+                  <button onClick={() => openEdit(p)} className="text-xs font-semibold text-primary hover:underline">
                     Editar
                   </button>
                 </td>
@@ -256,7 +256,7 @@ export default function AdminProducts({ initialProducts }: Props) {
                       setField('name', e.target.value)
                       if (isNew) setField('slug', toSlug(e.target.value))
                     }}
-                    className="w-full h-10 border border-gray-200 rounded-lg px-3 text-sm outline-none focus:border-[#1852D9] transition-all"
+                    className="w-full h-10 border border-gray-200 rounded-lg px-3 text-sm outline-none focus:border-primary transition-all"
                   />
                 </div>
                 <div>
@@ -269,18 +269,18 @@ export default function AdminProducts({ initialProducts }: Props) {
                         setField('brand', e.target.value)
                         if (selected) setField('brandColor', selected.color)
                       }}
-                      className="w-full h-10 border border-gray-200 rounded-lg px-3 text-sm outline-none focus:border-[#1852D9]"
+                      className="w-full h-10 border border-gray-200 rounded-lg px-3 text-sm outline-none focus:border-primary"
                     >
                       <option value="">Selecciona…</option>
                       {brands.map(b => <option key={b.id} value={b.name}>{b.name}</option>)}
                       <option value="__new__">+ Nueva marca…</option>
                     </select>
                   ) : (
-                    <input value={editing.brand} onChange={e => setField('brand', e.target.value)} placeholder="Nombre de marca" className="w-full h-10 border border-gray-200 rounded-lg px-3 text-sm outline-none focus:border-[#1852D9] transition-all" />
+                    <input value={editing.brand} onChange={e => setField('brand', e.target.value)} placeholder="Nombre de marca" className="w-full h-10 border border-gray-200 rounded-lg px-3 text-sm outline-none focus:border-primary transition-all" />
                   )}
                   {editing.brand === '__new__' && (
                     <input
-                      className="w-full h-10 border border-gray-200 rounded-lg px-3 text-sm outline-none focus:border-[#1852D9] transition-all mt-2"
+                      className="w-full h-10 border border-gray-200 rounded-lg px-3 text-sm outline-none focus:border-primary transition-all mt-2"
                       placeholder="Nombre de la nueva marca"
                       onChange={e => setField('brand', e.target.value)}
                     />
@@ -288,25 +288,25 @@ export default function AdminProducts({ initialProducts }: Props) {
                 </div>
                 <div>
                   <label className="text-xs font-semibold text-gray-500 mb-1 block">SKU *</label>
-                  <input value={editing.sku} onChange={e => setField('sku', e.target.value)} className="w-full h-10 border border-gray-200 rounded-lg px-3 text-sm outline-none focus:border-[#1852D9] transition-all font-mono" />
+                  <input value={editing.sku} onChange={e => setField('sku', e.target.value)} className="w-full h-10 border border-gray-200 rounded-lg px-3 text-sm outline-none focus:border-primary transition-all font-mono" />
                 </div>
                 <div>
                   <label className="text-xs font-semibold text-gray-500 mb-1 block">Precio *</label>
-                  <input type="number" value={editing.price} onChange={e => setField('price', Number(e.target.value))} className="w-full h-10 border border-gray-200 rounded-lg px-3 text-sm outline-none focus:border-[#1852D9] transition-all" />
+                  <input type="number" value={editing.price} onChange={e => setField('price', Number(e.target.value))} className="w-full h-10 border border-gray-200 rounded-lg px-3 text-sm outline-none focus:border-primary transition-all" />
                 </div>
                 <div>
                   <label className="text-xs font-semibold text-gray-500 mb-1 block">Precio original</label>
-                  <input type="number" value={editing.originalPrice ?? ''} onChange={e => setField('originalPrice', e.target.value ? Number(e.target.value) : undefined)} placeholder="Opcional" className="w-full h-10 border border-gray-200 rounded-lg px-3 text-sm outline-none focus:border-[#1852D9] transition-all" />
+                  <input type="number" value={editing.originalPrice ?? ''} onChange={e => setField('originalPrice', e.target.value ? Number(e.target.value) : undefined)} placeholder="Opcional" className="w-full h-10 border border-gray-200 rounded-lg px-3 text-sm outline-none focus:border-primary transition-all" />
                 </div>
                 <div>
                   <label className="text-xs font-semibold text-gray-500 mb-1 block">Categoría</label>
-                  <select value={editing.category} onChange={e => setField('category', e.target.value)} className="w-full h-10 border border-gray-200 rounded-lg px-3 text-sm outline-none focus:border-[#1852D9]">
+                  <select value={editing.category} onChange={e => setField('category', e.target.value)} className="w-full h-10 border border-gray-200 rounded-lg px-3 text-sm outline-none focus:border-primary">
                     {categories.map(c => <option key={c.id} value={c.slug}>{c.name}</option>)}
                   </select>
                 </div>
                 <div>
                   <label className="text-xs font-semibold text-gray-500 mb-1 block">Badge</label>
-                  <select value={editing.badge ?? ''} onChange={e => setField('badge', e.target.value || null)} className="w-full h-10 border border-gray-200 rounded-lg px-3 text-sm outline-none focus:border-[#1852D9]">
+                  <select value={editing.badge ?? ''} onChange={e => setField('badge', e.target.value || null)} className="w-full h-10 border border-gray-200 rounded-lg px-3 text-sm outline-none focus:border-primary">
                     {BADGE_OPTIONS.map(b => <option key={b} value={b}>{b || '(ninguno)'}</option>)}
                   </select>
                 </div>
@@ -314,19 +314,19 @@ export default function AdminProducts({ initialProducts }: Props) {
                   <label className="text-xs font-semibold text-gray-500 mb-1 block">Color de marca</label>
                   <div className="flex gap-2 items-center">
                     <input type="color" value={editing.brandColor} onChange={e => setField('brandColor', e.target.value)} className="w-10 h-10 rounded-lg border border-gray-200 cursor-pointer p-1" />
-                    <input value={editing.brandColor} onChange={e => setField('brandColor', e.target.value)} className="flex-1 h-10 border border-gray-200 rounded-lg px-3 text-sm outline-none focus:border-[#1852D9] font-mono" />
+                    <input value={editing.brandColor} onChange={e => setField('brandColor', e.target.value)} className="flex-1 h-10 border border-gray-200 rounded-lg px-3 text-sm outline-none focus:border-primary font-mono" />
                   </div>
                 </div>
               </div>
 
               <div>
                 <label className="text-xs font-semibold text-gray-500 mb-1 block">Descripción *</label>
-                <textarea value={editing.description} onChange={e => setField('description', e.target.value)} rows={3} className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm outline-none focus:border-[#1852D9] resize-none" />
+                <textarea value={editing.description} onChange={e => setField('description', e.target.value)} rows={3} className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm outline-none focus:border-primary resize-none" />
               </div>
 
               <div>
                 <label className="text-xs font-semibold text-gray-500 mb-1 block">Características (una por línea)</label>
-                <textarea value={editing.featuresText} onChange={e => setField('featuresText', e.target.value)} rows={4} className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm outline-none focus:border-[#1852D9] resize-none" />
+                <textarea value={editing.featuresText} onChange={e => setField('featuresText', e.target.value)} rows={4} className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm outline-none focus:border-primary resize-none" />
               </div>
 
               <div>
@@ -336,7 +336,7 @@ export default function AdminProducts({ initialProducts }: Props) {
                   min={0}
                   value={editing.stock}
                   onChange={e => setField('stock', Math.max(0, Number(e.target.value)))}
-                  className="w-full h-10 border border-gray-200 rounded-lg px-3 text-sm outline-none focus:border-[#1852D9] transition-all"
+                  className="w-full h-10 border border-gray-200 rounded-lg px-3 text-sm outline-none focus:border-primary transition-all"
                 />
               </div>
 
@@ -356,7 +356,7 @@ export default function AdminProducts({ initialProducts }: Props) {
               <button
                 onClick={handleSave}
                 disabled={saving}
-                className="flex-1 h-11 rounded-full bg-[#1852D9] text-white font-bold text-sm hover:bg-blue-700 transition-colors disabled:opacity-60"
+                className="flex-1 h-11 rounded-full bg-primary text-white font-bold text-sm hover:bg-primary-dark transition-colors disabled:opacity-60"
               >
                 {saving ? 'Guardando…' : isNew ? 'Crear producto' : 'Guardar cambios'}
               </button>

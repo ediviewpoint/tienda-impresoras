@@ -5,6 +5,7 @@ import { formatPrice } from '@/lib/utils'
 import type { Brand, Category, Product, ProductImage, Order, OrderItem } from '@/lib/generated/prisma/client'
 import AdminProducts from './AdminProducts'
 import AdminOrders from './AdminOrders'
+import { OrderStatusBadge } from '@/components/ui/OrderStatusBadge'
 
 type RecentOrder = Order & { items: OrderItem[] }
 type FullProduct = Product & { brand: Brand; category: Category; images: ProductImage[] }
@@ -29,13 +30,6 @@ const NAV: { id: Tab; label: string; icon: string }[] = [
   { id: 'ordenes', label: 'Órdenes', icon: '📦' },
 ]
 
-const STATUS_COLORS: Record<string, string> = {
-  pendiente: 'bg-yellow-100 text-yellow-700',
-  confirmado: 'bg-blue-100 text-blue-700',
-  enviado: 'bg-purple-100 text-purple-700',
-  entregado: 'bg-emerald-100 text-emerald-700',
-  cancelado: 'bg-red-100 text-red-700',
-}
 
 export default function AdminShell({ stats, initialProducts }: Props) {
   const [tab, setTab] = useState<Tab>('dashboard')
@@ -46,14 +40,14 @@ export default function AdminShell({ stats, initialProducts }: Props) {
       <aside className="w-56 bg-white border-r border-gray-100 flex flex-col pt-8 px-4 gap-1">
         <div className="px-2 mb-6">
           <span className="text-lg font-extrabold text-gray-900">PrintMax</span>
-          <span className="ml-2 text-xs bg-[#1852D9] text-white px-2 py-0.5 rounded-full font-semibold">Admin</span>
+          <span className="ml-2 text-xs bg-primary text-white px-2 py-0.5 rounded-full font-semibold">Admin</span>
         </div>
         {NAV.map(n => (
           <button
             key={n.id}
             onClick={() => setTab(n.id)}
             className={`flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-semibold transition-colors text-left ${
-              tab === n.id ? 'bg-[#1852D9] text-white' : 'text-gray-600 hover:bg-gray-50'
+              tab === n.id ? 'bg-primary text-white' : 'text-gray-600 hover:bg-gray-50'
             }`}
           >
             <span>{n.icon}</span>
@@ -79,7 +73,7 @@ export default function AdminShell({ stats, initialProducts }: Props) {
             {/* Stats cards */}
             <div className="grid grid-cols-3 gap-4 mb-8">
               {[
-                { label: 'Productos activos', value: stats.products, color: '#1852D9', icon: '🖨️' },
+                { label: 'Productos activos', value: stats.products, color: 'var(--color-primary)', icon: '🖨️' },
                 { label: 'Órdenes totales', value: stats.orders, color: '#7C3AED', icon: '📦' },
                 { label: 'Ingresos totales', value: formatPrice(stats.revenue), color: '#16A34A', icon: '💰' },
               ].map(({ label, value, color, icon }) => (
@@ -117,9 +111,7 @@ export default function AdminShell({ stats, initialProducts }: Props) {
                         <td className="py-2.5 text-gray-500">{o.items.length} producto{o.items.length !== 1 ? 's' : ''}</td>
                         <td className="py-2.5 font-semibold">{formatPrice(Number(o.total))}</td>
                         <td className="py-2.5">
-                          <span className={`text-xs font-semibold px-2 py-0.5 rounded-full ${STATUS_COLORS[o.status] ?? 'bg-gray-100 text-gray-600'}`}>
-                            {o.status}
-                          </span>
+                          <OrderStatusBadge status={o.status} />
                         </td>
                       </tr>
                     ))}

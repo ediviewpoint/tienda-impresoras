@@ -11,8 +11,8 @@ export default function DevolucionesPage() {
       <h1 className="text-3xl font-extrabold text-gray-900 mb-2">Política de Devoluciones</h1>
       <p className="text-sm text-gray-400 mb-10">Última actualización: julio 2025</p>
 
-      <div className="bg-blue-50 border border-blue-100 rounded-xl p-5 mb-10">
-        <p className="text-sm font-semibold text-blue-800">
+      <div className="bg-primary-light border border-primary/10 rounded-xl p-5 mb-10">
+        <p className="text-sm font-semibold text-primary">
           30 días para cambios o devoluciones en productos sin uso y en su empaque original.
         </p>
       </div>

@@ -3,18 +3,11 @@
 import { useState, useEffect, useCallback } from 'react'
 import { formatPrice } from '@/lib/utils'
 import type { Order, OrderItem, Product } from '@/lib/generated/prisma/client'
+import { STATUS_CLASSES } from '@/components/ui/OrderStatusBadge'
 
 type FullOrder = Order & { items: (OrderItem & { product: Product })[] }
 
 const STATUS_OPTIONS = ['pendiente', 'confirmado', 'enviado', 'entregado', 'cancelado']
-
-const STATUS_COLORS: Record<string, string> = {
-  pendiente: 'bg-yellow-100 text-yellow-700',
-  confirmado: 'bg-blue-100 text-blue-700',
-  enviado: 'bg-purple-100 text-purple-700',
-  entregado: 'bg-emerald-100 text-emerald-700',
-  cancelado: 'bg-red-100 text-red-700',
-}
 
 export default function AdminOrders() {
   const [orders, setOrders] = useState<FullOrder[]>([])
@@ -57,7 +50,7 @@ export default function AdminOrders() {
         <select
           value={filter}
           onChange={e => setFilter(e.target.value)}
-          className="h-9 border border-gray-200 rounded-lg px-3 text-sm outline-none focus:border-[#1852D9]"
+          className="h-9 border border-gray-200 rounded-lg px-3 text-sm outline-none focus:border-primary"
         >
           <option value="">Todos los estados</option>
           {STATUS_OPTIONS.map(s => <option key={s} value={s}>{s}</option>)}
@@ -92,7 +85,7 @@ export default function AdminOrders() {
                     <select
                       value={o.status}
                       onChange={e => handleStatusChange(o.id, e.target.value)}
-                      className={`text-xs font-semibold px-2 py-1 rounded-full border-0 outline-none cursor-pointer ${STATUS_COLORS[o.status] ?? 'bg-gray-100 text-gray-600'}`}
+                      className={`text-xs font-semibold px-2 py-1 rounded-full border-0 outline-none cursor-pointer ${STATUS_CLASSES[o.status] ?? 'bg-gray-100 text-gray-600'}`}
                     >
                       {STATUS_OPTIONS.map(s => <option key={s} value={s}>{s}</option>)}
                     </select>
@@ -103,7 +96,7 @@ export default function AdminOrders() {
                   <td className="px-4 py-3">
                     <button
                       onClick={() => setSelected(o)}
-                      className="text-xs font-semibold text-[#1852D9] hover:underline"
+                      className="text-xs font-semibold text-primary hover:underline"
                     >
                       Ver
                     </button>

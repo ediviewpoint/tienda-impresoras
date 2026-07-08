@@ -14,7 +14,7 @@ export function Newsletter() {
 
   return (
     <div className="max-w-7xl mx-auto px-6 mt-12">
-      <div className="bg-gradient-to-r from-primary to-[#3B7BF8] rounded-2xl px-12 py-12 flex items-center gap-12">
+      <div className="bg-gradient-to-r from-primary to-primary-lighter rounded-2xl px-12 py-12 flex items-center gap-12">
         <div className="text-white flex-1">
           <h3 className="text-2xl font-extrabold mb-2">Recibe las mejores ofertas</h3>
           <p className="text-white/75 text-sm">Suscríbete y obtén <strong>10% de descuento</strong> en tu primera compra más acceso a ofertas exclusivas.</p>

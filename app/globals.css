@@ -5,10 +5,26 @@
 @custom-variant dark (&:is(.dark *));
 
 :root {
-  --color-primary:      #1852D9;
-  --color-primary-dark: #1340B0;
-  --color-accent:       #FF5722;
-  --color-accent-dark:  #E64A19;
+  /* ── Brand tokens ───────────────────────────────── */
+  --color-primary:         #1852D9;
+  --color-primary-dark:    #1340B0;
+  --color-primary-light:   #EEF3FD;
+  --color-primary-deeper:  #0D2A8F;
+  --color-primary-lighter: #3B7BF8;
+  --color-accent:          #E05A1C;
+  --color-accent-dark:     #C44E18;
+  --color-success:         #059669;
+  --color-success-bg:      #ECFDF5;
+  --color-error:           #DC2626;
+  --color-error-bg:        #FEF2F2;
+  --color-warning:         #D97706;
+  --color-warning-bg:      #FFFBEB;
+  --color-whatsapp:        #25D366;
+  --color-whatsapp-dark:   #20BA5A;
+  --color-footer-bg:       #0D1B4B;
+  --color-bg-page:         #F8F9FA;
+  --color-bg-surface:      #FFFFFF;
+  /* ─────────────────────────────────────────────── */
   --background:      oklch(1 0 0);
   --foreground:      oklch(0.145 0 0);
   --card:      oklch(1 0 0);
@@ -44,10 +60,26 @@
 }
 
 @theme inline {
-  --color-primary:      var(--color-primary);
-  --color-primary-dark: var(--color-primary-dark);
-  --color-accent:       var(--color-accent);
-  --color-accent-dark:  var(--color-accent-dark);
+  /* ── Brand tokens ───────────────────────────────── */
+  --color-primary:         var(--color-primary);
+  --color-primary-dark:    var(--color-primary-dark);
+  --color-primary-light:   var(--color-primary-light);
+  --color-primary-deeper:  var(--color-primary-deeper);
+  --color-primary-lighter: var(--color-primary-lighter);
+  --color-accent:          var(--color-accent);
+  --color-accent-dark:     var(--color-accent-dark);
+  --color-success:         var(--color-success);
+  --color-success-bg:      var(--color-success-bg);
+  --color-error:           var(--color-error);
+  --color-error-bg:        var(--color-error-bg);
+  --color-warning:         var(--color-warning);
+  --color-warning-bg:      var(--color-warning-bg);
+  --color-whatsapp:        var(--color-whatsapp);
+  --color-whatsapp-dark:   var(--color-whatsapp-dark);
+  --color-footer-bg:       var(--color-footer-bg);
+  --color-bg-page:         var(--color-bg-page);
+  --color-bg-surface:      var(--color-bg-surface);
+  /* ─────────────────────────────────────────────── */
   --font-sans:      var(--font-sans);
   --font-heading:      var(--font-sans);
   --color-sidebar-ring:      var(--sidebar-ring);
@@ -91,8 +123,8 @@
 * { box-sizing: border-box; }
 
 body {
-  background: #F4F6FC;
-  color: #0D1B4B;
+  background: var(--color-bg-page);
+  color: #111827;
   -webkit-font-smoothing: antialiased;
 }
 

@@ -18,11 +18,11 @@ export async function FeaturedProducts() {
       <div className="flex items-center justify-between mb-6">
         <div>
           <h2 className="text-2xl font-extrabold text-gray-900">
-            Productos <span className="text-[#1852D9]">destacados</span>
+            Productos <span className="text-primary">destacados</span>
           </h2>
           <p className="text-sm text-gray-400 mt-1">Selección de los más vendidos esta semana</p>
         </div>
-        <Link href="/catalogo" className="text-sm font-semibold text-[#1852D9] flex items-center gap-1 px-4 py-2 rounded-full hover:bg-blue-50 transition-colors">
+        <Link href="/catalogo" className="text-sm font-semibold text-primary flex items-center gap-1 px-4 py-2 rounded-full hover:bg-primary-light transition-colors">
           Ver todos
           <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
         </Link>

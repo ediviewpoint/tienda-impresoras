@@ -15,7 +15,7 @@ export default function Error({ error, reset }: { error: Error; reset: () => voi
       <div className="flex gap-3">
         <button
           onClick={reset}
-          className="h-10 px-6 rounded-full bg-[#1852D9] text-white font-bold text-sm hover:bg-blue-700 transition-colors"
+          className="h-10 px-6 rounded-full bg-primary text-white font-bold text-sm hover:bg-primary-dark transition-colors"
         >
           Reintentar
         </button>

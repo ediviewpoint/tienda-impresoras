@@ -83,7 +83,7 @@ export function ReviewForm({ productId, initialReviews }: Props) {
               reviews.map(r => (
                 <div key={r.id} className="border-b border-gray-50 pb-5 last:border-0">
                   <div className="flex items-center gap-3 mb-2">
-                    <div className="w-8 h-8 rounded-full bg-blue-100 flex items-center justify-center text-xs font-bold text-[#1852D9]">
+                    <div className="w-8 h-8 rounded-full bg-primary-light flex items-center justify-center text-xs font-bold text-primary">
                       {(r.user.name ?? 'A')[0].toUpperCase()}
                     </div>
                     <div>
@@ -108,7 +108,7 @@ export function ReviewForm({ productId, initialReviews }: Props) {
 
             {!session ? (
               <div className="text-sm text-gray-500 bg-gray-50 rounded-xl p-4">
-                <Link href="/auth/login" className="text-[#1852D9] font-semibold hover:underline">
+                <Link href="/auth/login" className="text-primary font-semibold hover:underline">
                   Inicia sesión
                 </Link>{' '}
                 para dejar una reseña.
@@ -130,14 +130,14 @@ export function ReviewForm({ productId, initialReviews }: Props) {
                     onChange={e => setBody(e.target.value)}
                     rows={4}
                     placeholder="¿Qué te pareció el producto?"
-                    className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm outline-none focus:border-[#1852D9] resize-none"
+                    className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm outline-none focus:border-primary resize-none"
                   />
                 </div>
                 {error && <p className="text-xs text-red-500">{error}</p>}
                 <button
                   type="submit"
                   disabled={submitting}
-                  className="w-full h-10 rounded-full bg-[#1852D9] text-white font-bold text-sm hover:bg-blue-700 transition-colors disabled:opacity-60"
+                  className="w-full h-10 rounded-full bg-primary text-white font-bold text-sm hover:bg-primary-dark transition-colors disabled:opacity-60"
                 >
                   {submitting ? 'Enviando…' : 'Publicar reseña'}
                 </button>

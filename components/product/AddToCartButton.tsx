@@ -28,9 +28,9 @@ export function AddToCartButton({ product, className = "" }: AddToCartButtonProp
       disabled={!product.inStock || added}
       className={`w-full h-12 rounded-full font-bold text-sm flex items-center justify-center gap-2 transition-colors disabled:opacity-60 ${
         added
-          ? "bg-emerald-500 text-white"
+          ? "bg-success text-white"
           : product.inStock
-          ? "bg-[#1852D9] text-white hover:bg-[#1340B0]"
+          ? "bg-primary text-white hover:bg-primary-dark"
           : "bg-gray-200 text-gray-400 cursor-not-allowed"
       } ${className}`}
     >
