@@ -161,12 +161,6 @@ export function ProductDetail({ product }: { product: Product }) {
         </div>
       </div>
 
-      {/* Related suggestion */}
-      <div className="mt-4 text-center">
-        <a href="/catalogo" className="text-sm text-gray-400 hover:text-primary transition-colors">
-          ← Volver al catálogo
-        </a>
-      </div>
     </div>
   )
 }

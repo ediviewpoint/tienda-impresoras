@@ -83,10 +83,26 @@ export function ProductCard({ product }: { product: Product }) {
         </p>
         <Link
           href={`/producto/${product.slug}`}
-          className="text-sm font-semibold text-gray-900 leading-snug mb-2 hover:text-primary transition-colors line-clamp-2 flex-1"
+          className="text-sm font-semibold text-gray-900 leading-snug mb-2 hover:text-primary transition-colors line-clamp-2"
         >
           {product.name}
         </Link>
+
+        {product.features.length > 0 && (
+          <div className="flex flex-wrap gap-1 mb-2.5">
+            {product.features.slice(0, 3).map(f => (
+              <span
+                key={f}
+                className="text-[11px] font-semibold px-2 py-0.5 rounded-full"
+                style={{ color: product.brandColor, background: `${product.brandColor}18` }}
+              >
+                {f}
+              </span>
+            ))}
+          </div>
+        )}
+
+        <div className="flex-1" />
         <StarRating rating={product.rating} count={product.reviewCount} />
 
         <div className="mt-3">

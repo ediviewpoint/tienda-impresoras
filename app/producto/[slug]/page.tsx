@@ -4,6 +4,7 @@ import { prisma } from '@/lib/db'
 import { dbToUIProduct } from '@/lib/db-utils'
 import { ProductDetail } from './ProductDetail'
 import { ReviewForm } from '@/components/product/ReviewForm'
+import { Breadcrumb } from '@/components/ui/Breadcrumb'
 
 interface Props {
   params: Promise<{ slug: string }>
@@ -79,6 +80,12 @@ export default async function ProductPage({ params }: Props) {
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
       />
+      <Breadcrumb items={[
+        { label: 'Inicio', href: '/' },
+        { label: 'Catálogo', href: '/catalogo' },
+        { label: p.category.name, href: `/catalogo?cat=${p.category.slug}` },
+        { label: p.name },
+      ]} />
       <ProductDetail product={dbToUIProduct(p)} />
       <ReviewForm
         productId={p.id}
