@@ -83,7 +83,7 @@ export function ProductCard({ product }: { product: Product }) {
         </p>
         <Link
           href={`/producto/${product.slug}`}
-          className="text-sm font-semibold text-gray-900 leading-snug mb-2 hover:text-[#1852D9] transition-colors line-clamp-2 flex-1"
+          className="text-sm font-semibold text-gray-900 leading-snug mb-2 hover:text-primary transition-colors line-clamp-2 flex-1"
         >
           {product.name}
         </Link>
@@ -100,7 +100,7 @@ export function ProductCard({ product }: { product: Product }) {
           className={`mt-3.5 h-10 rounded-full text-sm font-bold flex items-center justify-center gap-2 transition-colors duration-200 ${
             outOfStock
               ? 'bg-gray-100 text-gray-400 cursor-not-allowed'
-              : `opacity-0 group-hover:opacity-100 ${added ? 'bg-emerald-500 text-white' : 'bg-[#1852D9] text-white hover:bg-[#1340B0]'}`
+              : `opacity-0 group-hover:opacity-100 [@media(hover:none)]:opacity-100 ${added ? 'bg-success text-white' : 'bg-primary text-white hover:bg-primary-dark'}`
           }`}
         >
           {outOfStock ? 'Sin stock' : added ? '✓ Agregado' : (

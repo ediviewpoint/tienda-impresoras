@@ -25,7 +25,7 @@ export function ProductDetail({ product }: { product: Product }) {
 
   return (
     <div className="max-w-7xl mx-auto px-6 mt-8">
-      <div className="bg-white rounded-2xl border border-gray-100 p-8 grid grid-cols-2 gap-12">
+      <div className="bg-white rounded-2xl border border-gray-100 p-5 lg:p-8 grid grid-cols-1 lg:grid-cols-2 gap-8 lg:gap-12">
 
         {/* Left — Image / 3D viewer */}
         <div>
@@ -35,7 +35,7 @@ export function ProductDetail({ product }: { product: Product }) {
                 key={t}
                 onClick={() => setTab(t)}
                 className={`h-8 px-4 rounded-full text-xs font-semibold transition-colors ${
-                  tab === t ? 'bg-[#1852D9] text-white' : 'bg-gray-100 text-gray-500 hover:bg-gray-200'
+                  tab === t ? 'bg-primary text-white' : 'bg-gray-100 text-gray-500 hover:bg-gray-200'
                 }`}
               >
                 {t === 'images' ? '📷 Imágenes' : '🧊 Vista 3D'}
@@ -90,7 +90,7 @@ export function ProductDetail({ product }: { product: Product }) {
           <ul className="space-y-2 mb-6">
             {product.features.map(f => (
               <li key={f} className="flex items-center gap-2 text-sm text-gray-700">
-                <span className="w-4 h-4 rounded-full bg-blue-50 text-[#1852D9] flex items-center justify-center text-[10px] font-bold">✓</span>
+                <span className="w-4 h-4 rounded-full bg-primary-light text-primary flex items-center justify-center text-[10px] font-bold">✓</span>
                 {f}
               </li>
             ))}
@@ -131,8 +131,8 @@ export function ProductDetail({ product }: { product: Product }) {
                 !product.inStock || product.stock === 0
                   ? 'bg-gray-200 text-gray-400 cursor-not-allowed'
                   : added
-                    ? 'bg-emerald-500 text-white'
-                    : 'bg-[#1852D9] text-white hover:bg-[#1340B0]'
+                    ? 'bg-success text-white'
+                    : 'bg-primary text-white hover:bg-primary-dark'
               }`}
             >
               {!product.inStock || product.stock === 0 ? 'Sin stock' : added ? '✓ Agregado al carrito' : 'Agregar al carrito'}
@@ -143,7 +143,7 @@ export function ProductDetail({ product }: { product: Product }) {
           <div className="flex gap-2 mt-4">
             <p className="text-xs text-gray-400 self-center">Compartir:</p>
             {[
-              { label: 'WhatsApp', color: '#25D366', href: `https://wa.me/?text=${encodeURIComponent(product.name + ' — PrintMax')}` },
+              { label: 'WhatsApp', color: 'var(--color-whatsapp)', href: `https://wa.me/?text=${encodeURIComponent(product.name + ' — PrintMax')}` },
               { label: 'Facebook', color: '#1877F2', href: `https://facebook.com/sharer/sharer.php?u=${encodeURIComponent(`${process.env.NEXT_PUBLIC_SITE_URL ?? 'https://printmax.bo'}/producto/` + product.slug)}` },
             ].map(({ label, color, href }) => (
               <a
@@ -163,7 +163,7 @@ export function ProductDetail({ product }: { product: Product }) {
 
       {/* Related suggestion */}
       <div className="mt-4 text-center">
-        <a href="/catalogo" className="text-sm text-gray-400 hover:text-[#1852D9] transition-colors">
+        <a href="/catalogo" className="text-sm text-gray-400 hover:text-primary transition-colors">
           ← Volver al catálogo
         </a>
       </div>

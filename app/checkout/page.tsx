@@ -195,14 +195,14 @@ export default function CheckoutPage() {
         <p className="text-gray-500 font-mono text-sm">#{orderResult.orderNumber}</p>
 
         {isWhatsApp && (
-          <div className="bg-green-50 border border-green-100 rounded-xl p-5 text-left space-y-3">
+          <div className="bg-success-bg border border-success/10 rounded-xl p-5 text-left space-y-3">
             <p className="font-bold text-gray-900">Siguiente paso:</p>
             <p className="text-sm text-gray-600">Envía tu pedido por WhatsApp para coordinar la entrega y pago.</p>
             <a
               href={`https://wa.me/${process.env.NEXT_PUBLIC_WHATSAPP_NUMBER ?? '591XXXXXXXXX'}?text=${buildWhatsAppMessage(formSnap as CheckoutForm, orderResult.orderNumber)}`}
               target="_blank"
               rel="noopener noreferrer"
-              className="flex items-center justify-center gap-2 w-full h-12 rounded-full bg-[#25D366] text-white font-bold text-sm hover:bg-[#20BA5A] transition-colors"
+              className="flex items-center justify-center gap-2 w-full h-12 rounded-full bg-whatsapp text-white font-bold text-sm hover:bg-whatsapp-dark transition-colors"
             >
               <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347z"/><path d="M12 0C5.373 0 0 5.373 0 12c0 2.116.554 4.103 1.524 5.826L.057 23.985l6.305-1.654A11.954 11.954 0 0012 24c6.627 0 12-5.373 12-12S18.627 0 12 0zm0 21.882a9.875 9.875 0 01-5.032-1.378l-.361-.214-3.741.981 1-3.641-.235-.374A9.86 9.86 0 012.118 12C2.118 6.539 6.539 2.118 12 2.118c5.462 0 9.882 4.421 9.882 9.882 0 5.462-4.42 9.882-9.882 9.882z"/></svg>
               Enviar pedido por WhatsApp
@@ -211,7 +211,7 @@ export default function CheckoutPage() {
         )}
 
         {isTransfer && (
-          <div className="bg-blue-50 border border-blue-100 rounded-xl p-5 text-left space-y-3">
+          <div className="bg-primary-light border border-primary/10 rounded-xl p-5 text-left space-y-3">
             <p className="font-bold text-gray-900">Realiza tu transferencia bancaria:</p>
             <div className="space-y-2 text-sm">
               {Object.entries(TRANSFER_INFO).map(([k, v]) => (
@@ -220,9 +220,9 @@ export default function CheckoutPage() {
                   <span className="font-semibold text-gray-900 font-mono">{v}</span>
                 </div>
               ))}
-              <div className="flex justify-between pt-1 border-t border-blue-100">
+              <div className="flex justify-between pt-1 border-t border-primary/10">
                 <span className="text-gray-500">Monto exacto:</span>
-                <span className="font-extrabold text-[#1852D9]">{formatPrice(grandTotal)}</span>
+                <span className="font-extrabold text-primary">{formatPrice(grandTotal)}</span>
               </div>
               <div className="flex justify-between">
                 <span className="text-gray-500">Referencia:</span>
@@ -250,19 +250,19 @@ export default function CheckoutPage() {
   // ── Checkout form ─────────────────────────────────────────────────────────────
   const inputCls = (hasError?: boolean) =>
     `w-full h-10 border rounded-lg px-3 text-sm outline-none transition-all ${
-      hasError ? 'border-red-400 focus:border-red-500' : 'border-gray-200 focus:border-[#1852D9]'
+      hasError ? 'border-red-400 focus:border-red-500' : 'border-gray-200 focus:border-primary'
     }`
 
   return (
     <div className="max-w-5xl mx-auto px-6 mt-8">
       <h1 className="text-3xl font-extrabold text-gray-900 mb-7">Checkout</h1>
 
-      <div className="grid grid-cols-[1fr_360px] gap-8">
+      <div className="grid grid-cols-1 lg:grid-cols-[1fr_360px] gap-8">
         <div className="space-y-5">
           {/* Shipping form */}
           <div className="bg-white rounded-xl border border-gray-100 p-6">
             <h3 className="font-bold text-gray-900 mb-4">Datos de envío</h3>
-            <div className="grid grid-cols-2 gap-4">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <div>
                 <label className="text-xs font-semibold text-gray-500 mb-1 block">Nombre *</label>
                 <input {...register('nombre')} className={inputCls(!!errors.nombre)} />
@@ -283,7 +283,7 @@ export default function CheckoutPage() {
                 <input {...register('cp')} placeholder="0000" className={inputCls(!!errors.cp)} maxLength={6} />
                 <FieldError msg={errors.cp?.message} />
               </div>
-              <div className="col-span-2">
+              <div className="sm:col-span-2">
                 <label className="text-xs font-semibold text-gray-500 mb-1 block">Dirección</label>
                 <input {...register('direccion')} placeholder="Calle, número, zona" className={inputCls()} />
               </div>
@@ -306,7 +306,7 @@ export default function CheckoutPage() {
                 <label
                   key={id}
                   className={`flex flex-col items-center gap-2 border rounded-xl p-4 cursor-pointer transition-colors ${
-                    paymentMethod === id ? 'border-[#1852D9] bg-blue-50' : 'border-gray-200 hover:border-[#1852D9]'
+                    paymentMethod === id ? 'border-primary bg-primary-light' : 'border-gray-200 hover:border-primary'
                   }`}
                 >
                   <input type="radio" {...register('paymentMethod')} value={id} className="sr-only" />
@@ -319,7 +319,7 @@ export default function CheckoutPage() {
             <AnimatePresence>
               {paymentMethod === 'transferencia' && (
                 <motion.div initial={{ opacity: 0, height: 0 }} animate={{ opacity: 1, height: 'auto' }} exit={{ opacity: 0, height: 0 }}
-                  className="bg-blue-50 rounded-xl p-4 text-sm space-y-2">
+                  className="bg-primary-light rounded-xl p-4 text-sm space-y-2">
                   <p className="font-bold text-gray-800 text-xs uppercase tracking-wide mb-2">Datos de transferencia</p>
                   {Object.entries(TRANSFER_INFO).map(([k, v]) => (
                     <div key={k} className="flex justify-between">
@@ -331,7 +331,7 @@ export default function CheckoutPage() {
               )}
               {paymentMethod === 'manual' && (
                 <motion.div initial={{ opacity: 0, height: 0 }} animate={{ opacity: 1, height: 'auto' }} exit={{ opacity: 0, height: 0 }}
-                  className="bg-green-50 rounded-xl p-4 text-sm text-gray-600">
+                  className="bg-success-bg rounded-xl p-4 text-sm text-gray-600">
                   Se registrará tu pedido y recibirás un mensaje de WhatsApp para coordinar el pago y la entrega.
                 </motion.div>
               )}
@@ -375,7 +375,7 @@ export default function CheckoutPage() {
           <div className="border-t border-gray-100 pt-3 space-y-2 text-sm">
             <div className="flex justify-between text-gray-500">
               <span>Envío</span>
-              <span className={shipping === 0 ? 'text-emerald-600 font-semibold' : ''}>
+              <span className={shipping === 0 ? 'text-success font-semibold' : ''}>
                 {shipping === 0 ? 'GRATIS' : formatPrice(shipping)}
               </span>
             </div>
@@ -396,7 +396,7 @@ export default function CheckoutPage() {
                 initial={{ opacity: 0, height: 0 }}
                 animate={{ opacity: 1, height: 'auto' }}
                 exit={{ opacity: 0, height: 0 }}
-                className="mt-4 bg-red-50 border border-red-200 rounded-xl px-4 py-3 text-sm text-red-700 font-medium"
+                className="mt-4 bg-error-bg border border-error/20 rounded-xl px-4 py-3 text-sm text-error font-medium"
               >
                 <span className="font-bold">Sin stock:</span> {stockError}
               </motion.div>
@@ -407,7 +407,7 @@ export default function CheckoutPage() {
             <button
               onClick={handleSubmit(data => saveOrder(data))}
               disabled={saving || items.length === 0}
-              className="mt-5 w-full h-12 rounded-full bg-[#FF5722] text-white font-bold text-sm flex items-center justify-center gap-2 hover:bg-[#E64A19] transition-colors shadow-[0_4px_16px_rgba(255,87,34,.35)] disabled:opacity-60 disabled:cursor-not-allowed"
+              className="mt-5 w-full h-12 rounded-full bg-accent text-white font-bold text-sm flex items-center justify-center gap-2 hover:bg-accent-dark transition-colors shadow-[0_4px_16px_rgba(224,90,28,.35)] disabled:opacity-60 disabled:cursor-not-allowed"
             >
               {saving ? 'Procesando…' : paymentMethod === 'manual' ? '📱 Confirmar y abrir WhatsApp' : '🏦 Confirmar transferencia'}
             </button>

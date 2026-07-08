@@ -38,13 +38,36 @@ export function CatalogoClient({ allProducts, categories, totalActive, initialQ,
           value={q}
           onChange={e => setQ(e.target.value || null)}
           placeholder="Buscar por nombre o marca…"
-          className="w-full h-10 border border-gray-200 rounded-xl px-4 text-sm outline-none focus:border-[#1852D9] transition-all bg-white"
+          className="w-full h-10 border border-gray-200 rounded-xl px-4 text-sm outline-none focus:border-primary transition-all bg-white"
         />
       </div>
 
+      {/* Mobile category chips */}
+      <div className="lg:hidden flex gap-2 overflow-x-auto pb-2 mb-5">
+        <button
+          onClick={() => setCat(null)}
+          className={`flex-shrink-0 h-8 px-3 rounded-full text-sm font-semibold transition-colors ${
+            !cat ? 'bg-primary text-white' : 'bg-white border border-gray-200 text-gray-600'
+          }`}
+        >
+          Todos
+        </button>
+        {categories.map(c => (
+          <button
+            key={c.id}
+            onClick={() => setCat(cat === c.slug ? null : c.slug)}
+            className={`flex-shrink-0 h-8 px-3 rounded-full text-sm font-semibold transition-colors ${
+              cat === c.slug ? 'bg-primary text-white' : 'bg-white border border-gray-200 text-gray-600'
+            }`}
+          >
+            {c.name}
+          </button>
+        ))}
+      </div>
+
       <div className="flex gap-8">
-        {/* Sidebar */}
-        <aside className="w-52 flex-shrink-0">
+        {/* Sidebar — desktop only */}
+        <aside className="hidden lg:block w-52 flex-shrink-0">
           <div className="bg-white rounded-xl border border-gray-100 p-5 sticky top-4">
             <h3 className="font-bold text-sm text-gray-900 mb-3">Categorías</h3>
             <ul className="space-y-0.5">
@@ -52,7 +75,7 @@ export function CatalogoClient({ allProducts, categories, totalActive, initialQ,
                 <button
                   onClick={() => setCat(null)}
                   className={`w-full text-left px-3 py-2 rounded-lg text-sm transition-colors ${
-                    !cat ? 'bg-blue-50 text-[#1852D9] font-semibold' : 'text-gray-600 hover:bg-gray-50'
+                    !cat ? 'bg-primary-light text-primary font-semibold' : 'text-gray-600 hover:bg-gray-50'
                   }`}
                 >
                   Todos
@@ -65,7 +88,7 @@ export function CatalogoClient({ allProducts, categories, totalActive, initialQ,
                     onClick={() => setCat(cat === c.slug ? null : c.slug)}
                     className={`w-full text-left px-3 py-2 rounded-lg text-sm transition-colors ${
                       cat === c.slug
-                        ? 'bg-blue-50 text-[#1852D9] font-semibold'
+                        ? 'bg-primary-light text-primary font-semibold'
                         : 'text-gray-600 hover:bg-gray-50'
                     }`}
                   >
@@ -92,7 +115,7 @@ export function CatalogoClient({ allProducts, categories, totalActive, initialQ,
               <p className="text-sm mt-1">Intenta con otra búsqueda o categoría</p>
               <button
                 onClick={() => { setCat(null); setQ(null) }}
-                className="mt-4 text-sm text-[#1852D9] font-semibold hover:underline"
+                className="mt-4 text-sm text-primary font-semibold hover:underline"
               >
                 Ver todos los productos
               </button>

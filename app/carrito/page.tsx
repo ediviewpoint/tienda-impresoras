@@ -20,7 +20,7 @@ export default function CarritoPage() {
         <p className="text-6xl mb-4">🛒</p>
         <h2 className="text-2xl font-extrabold text-gray-900 mb-2">Tu carrito está vacío</h2>
         <p className="text-gray-400 mb-6">Agrega productos para continuar.</p>
-        <Link href="/catalogo" className="inline-flex h-11 px-8 rounded-full bg-[#1852D9] text-white font-bold text-sm items-center gap-2 hover:bg-[#1340B0] transition-colors">
+        <Link href="/catalogo" className="inline-flex h-11 px-8 rounded-full bg-primary text-white font-bold text-sm items-center gap-2 hover:bg-primary-dark transition-colors">
           Explorar catálogo
         </Link>
       </div>
@@ -31,7 +31,7 @@ export default function CarritoPage() {
     <div className="max-w-7xl mx-auto px-6 mt-8">
       <h1 className="text-3xl font-extrabold text-gray-900 mb-7">Tu carrito</h1>
 
-      <div className="grid grid-cols-[1fr_360px] gap-8">
+      <div className="grid grid-cols-1 lg:grid-cols-[1fr_360px] gap-8">
         {/* Items */}
         <div className="space-y-4">
           <AnimatePresence>
@@ -92,7 +92,7 @@ export default function CarritoPage() {
             </div>
             <div className="flex justify-between text-gray-600">
               <span>Envío</span>
-              <span className={shipping === 0 ? 'text-emerald-600 font-semibold' : ''}>{shipping === 0 ? 'GRATIS' : formatPrice(shipping)}</span>
+              <span className={shipping === 0 ? 'text-success font-semibold' : ''}>{shipping === 0 ? 'GRATIS' : formatPrice(shipping)}</span>
             </div>
             <p className="text-xs text-gray-400">{tieneFactura ? 'Con factura — IVA incluido' : 'Sin factura — precio neto'}</p>
             <div className="border-t border-gray-100 pt-3 flex justify-between font-extrabold text-gray-900 text-base">
@@ -104,7 +104,7 @@ export default function CarritoPage() {
               </AnimatePresence>
             </div>
           </div>
-          <Link href="/checkout" className="w-full h-12 rounded-full bg-[#1852D9] text-white font-bold text-sm flex items-center justify-center gap-2 hover:bg-[#1340B0] transition-colors">
+          <Link href="/checkout" className="w-full h-12 rounded-full bg-primary text-white font-bold text-sm flex items-center justify-center gap-2 hover:bg-primary-dark transition-colors">
             Proceder al pago
             <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
           </Link>

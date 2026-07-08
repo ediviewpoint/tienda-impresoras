@@ -2,9 +2,9 @@ import Link from 'next/link'
 
 export function Hero() {
   return (
-    <section className="max-w-7xl mx-auto px-6 mt-7 grid grid-cols-[1fr_340px] gap-5">
+    <section className="max-w-7xl mx-auto px-6 mt-7 grid grid-cols-1 lg:grid-cols-[1fr_340px] gap-5">
       {/* Main banner */}
-      <div className="relative bg-gradient-to-br from-[#0D2A8F] via-[#1852D9] to-[#3B7BF8] rounded-2xl p-12 flex items-center justify-between overflow-hidden min-h-[340px]">
+      <div className="relative bg-gradient-to-br from-primary-deeper via-primary to-primary-lighter rounded-2xl p-8 lg:p-12 flex items-center justify-between overflow-hidden min-h-[260px] lg:min-h-[340px]">
         <div className="absolute inset-0 opacity-5">
           <div className="absolute top-[-30px] right-[-30px] w-72 h-72 rounded-full bg-white"/>
           <div className="absolute bottom-[-40px] right-[-20px] w-56 h-56 rounded-full bg-white"/>
@@ -34,8 +34,8 @@ export function Hero() {
           </div>
         </div>
 
-        {/* Printer illustration */}
-        <div className="relative flex-shrink-0">
+        {/* Printer illustration — hidden on mobile to avoid overflow */}
+        <div className="relative flex-shrink-0 hidden lg:block">
           <svg width="220" height="200" viewBox="0 0 260 220" fill="none" className="drop-shadow-2xl">
             <rect x="30" y="80" width="200" height="90" rx="10" fill="white" fillOpacity="0.18"/>
             <rect x="30" y="80" width="200" height="90" rx="10" stroke="white" strokeOpacity="0.35" strokeWidth="1.5"/>

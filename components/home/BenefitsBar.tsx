@@ -32,11 +32,15 @@ const benefits = [
 export function BenefitsBar() {
   return (
     <div className="max-w-7xl mx-auto px-6 mt-7">
-      <div className="bg-white rounded-xl border border-gray-100 grid grid-cols-4 overflow-hidden">
+      <div className="bg-white rounded-xl border border-gray-100 grid grid-cols-2 md:grid-cols-4 overflow-hidden">
         {benefits.map(({ icon, title, sub, bg, color }, i) => (
           <div
             key={title}
-            className={`flex items-center gap-3.5 px-6 py-5 ${i < 3 ? 'border-r border-gray-100' : ''}`}
+            className={`flex items-center gap-3.5 px-6 py-5 border-gray-100 ${
+              i === 0 ? 'border-r border-b md:border-b-0' :
+              i === 1 ? 'border-b md:border-b-0 md:border-r' :
+              i === 2 ? 'border-r' : ''
+            }`}
           >
             <div className={`w-11 h-11 rounded-xl flex items-center justify-center text-xl flex-shrink-0 ${bg} ${color}`}>
               {icon}
