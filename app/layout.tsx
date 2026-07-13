@@ -8,7 +8,9 @@ import { Geist } from "next/font/google";
 import { cn } from "@/lib/utils";
 import { SessionProvider } from '@/components/providers/SessionProvider'
 import { NuqsAdapter } from 'nuqs/adapters/next/app'
-import { auth } from '@/auth'
+import { WhatsAppButton } from '@/components/shared/WhatsAppButton'
+import { CartDrawer } from '@/components/carrito/CartDrawer'
+import { MotionConfig } from 'framer-motion'
 
 const geist = Geist({subsets:['latin'],variable:'--font-sans'});
 
@@ -34,21 +36,23 @@ export const metadata: Metadata = {
   robots: { index: true, follow: true },
 }
 
-export default async function RootLayout({ children }: { children: React.ReactNode }) {
-  const session = await auth()
-
+export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
     <html lang="es" className={cn("font-sans", geist.variable)}>
       <body className="min-h-screen flex flex-col">
-        <NuqsAdapter>
-          <SessionProvider session={session}>
-            <AnnouncementBar />
-            <Header />
-            <Nav />
-            <main className="flex-1 pb-16">{children}</main>
-            <Footer />
-          </SessionProvider>
-        </NuqsAdapter>
+        <MotionConfig reducedMotion="user">
+          <NuqsAdapter>
+            <SessionProvider session={null}>
+              <AnnouncementBar />
+              <Header />
+              <Nav />
+              <main className="flex-1 pb-16">{children}</main>
+              <CartDrawer />
+              <WhatsAppButton />
+              <Footer />
+            </SessionProvider>
+          </NuqsAdapter>
+        </MotionConfig>
       </body>
     </html>
   )

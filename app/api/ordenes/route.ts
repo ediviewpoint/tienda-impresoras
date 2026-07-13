@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
+import { revalidatePath } from 'next/cache'
 import { prisma } from '@/lib/db'
 import { getResend, FROM, ADMIN_EMAIL } from '@/lib/email'
 import OrderConfirmation from '@/emails/OrderConfirmation'
@@ -184,6 +185,14 @@ export async function POST(req: NextRequest) {
     }
     throw err
   }
+
+  // Stock was decremented inside the transaction — revalidate after commit
+  revalidatePath('/')
+  revalidatePath('/catalogo')
+  for (const item of order.items) {
+    revalidatePath(`/producto/${item.product.slug}`)
+  }
+  revalidatePath('/producto/[slug]', 'page')
 
   if (process.env.RESEND_API_KEY) {
     const emailItems = order.items.map(i => ({

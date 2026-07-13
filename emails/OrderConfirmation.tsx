@@ -70,8 +70,8 @@ export default function OrderConfirmation({
             <Heading as="h3" style={{ fontSize: 14, color: '#374151', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.05em' }}>
               Productos
             </Heading>
-            {items.map((item, i) => (
-              <Row key={i} style={{ borderBottom: '1px solid #f3f4f6', padding: '10px 0' }}>
+            {items.map((item) => (
+              <Row key={item.name} style={{ borderBottom: '1px solid #f3f4f6', padding: '10px 0' }}>
                 <Column>
                   <Text style={{ margin: 0, fontSize: 14, color: '#111827', fontWeight: 600 }}>{item.name}</Text>
                   <Text style={{ margin: '2px 0 0', fontSize: 13, color: '#9ca3af' }}>× {item.quantity} — {fmt(item.unitPrice)} c/u</Text>

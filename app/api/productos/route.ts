@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
+import { revalidatePath } from 'next/cache'
 import { prisma } from '@/lib/db'
 import { PRODUCT_INCLUDE } from '@/lib/db-utils'
 import { auth } from '@/auth'
@@ -111,6 +112,10 @@ export async function POST(req: NextRequest) {
       },
       include: PRODUCT_INCLUDE,
     })
+
+    revalidatePath('/')
+    revalidatePath('/catalogo')
+    revalidatePath('/producto/[slug]', 'page')
 
     return NextResponse.json({ product }, { status: 201 })
   } catch (err) {

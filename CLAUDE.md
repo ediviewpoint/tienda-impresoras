@@ -1,34 +1,44 @@
-@AGENTS.md
-## FILOSOFÍA DE TRABAJO — LEE ESTO ANTES DE ESCRIBIR CUALQUIER LÍNEA DE CÓDIGO
+# Proyecto: tienda-impresoras-app (ElitePC)
 
-### PROHIBIDO EL MODO "TEMPLATE"
-- NO uses diseños genéricos de IA: nada de gradientes morados/azules por defecto, cards idénticas con sombras suaves, hero sections clichés, ni emojis como iconos.
-- NO escribas código "de ejemplo" o "de demostración". Esto es un producto REAL para un negocio REAL de venta de impresoras y laptops en Bolivia.
-- NO asumas: si algo no está claro, PREGÚNTAME antes de inventar.
+E-commerce de impresoras, laptops y tecnología para Bolivia (Santa Cruz de la Sierra).
+Idioma de toda la UI y textos: español. Moneda: bolivianos (Bs.).
 
-### PIENSA ANTES DE ACTUAR (obligatorio en cada tarea)
-Antes de escribir código, SIEMPRE responde primero estas preguntas por escrito:
-1. ¿Qué problema real estoy resolviendo y para quién? (cliente comprando una laptop vs admin gestionando stock son mundos distintos)
-2. ¿Qué archivos existentes se ven afectados? (revísalos ANTES de tocar nada)
-3. ¿Cómo se conecta esto con el resto del sistema? (¿rompe algo? ¿duplica lógica que ya existe?)
-4. ¿Cuáles son los casos borde? (stock en 0, imagen que no carga, precio con decimales, usuario sin sesión, conexión lenta)
-5. ¿Hay una forma más simple de hacerlo?
+## Comandos
+- `npm run dev` — servidor de desarrollo
+- `npm run build` — verificar que compila antes de dar por terminada una tarea grande
+- `npx prisma migrate dev` — migraciones en desarrollo
+- `npm run db:seed` — seed de categorías/marcas
 
-Solo DESPUÉS de responder eso, escribe el código.
+## Stack
+- Next.js (App Router) + React 19 + TypeScript
+- Tailwind CSS v4 + shadcn/ui + Base UI (usar componentes de shadcn SIEMPRE antes de crear uno desde cero)
+- Framer Motion para animaciones, Embla Carousel para carruseles
+- Zustand (estado global) y nuqs (filtros sincronizados con URL)
+- React Hook Form + Zod para TODOS los formularios
+- Prisma + Neon (adapter @prisma/adapter-neon). Auth.js v5 (credenciales bcrypt + Google)
+- Vercel Blob (imágenes), Resend + react-email (correos), @react-pdf/renderer (recibos), PayPal
 
-### CRITERIOS DE CALIDAD REAL
-- **Contexto de negocio primero**: una tienda de hardware necesita mostrar SPECS TÉCNICAS bien (procesador, RAM, tipo de tinta/tóner, ppm de impresión). Un cliente compara productos por specs, no por fotos bonitas. Diseña para eso.
-- **Datos reales, no placeholder**: usa productos reales de ejemplo (HP LaserJet, Epson EcoTank, Lenovo IdeaPad, Ryzen 5, Core i5) con precios y specs coherentes en bolivianos (Bs), no "Producto 1 - $99.99".
-- **Diseño con intención**: cada decisión visual debe tener una razón. Jerarquía clara: ¿qué es lo primero que debe ver el usuario en esta pantalla? ¿Cuál es la acción principal?
-- **Código que un senior aprobaría**: nombres descriptivos, funciones pequeñas con una sola responsabilidad, manejo de errores en TODOS los puntos de falla, sin lógica de negocio en los componentes de UI.
+## Convenciones de código
+- Server Components por defecto; "use client" solo cuando hay interactividad
+- Mutaciones con Server Actions; SIEMPRE llamar revalidatePath/revalidateTag al editar productos, stock o pedidos (el caché del App Router es agresivo)
+- Validar toda entrada con Zod tanto en cliente como en servidor
+- Nunca confiar en precios enviados desde el cliente: recalcular en servidor desde la DB
+- Operaciones de stock deben ser atómicas (transacciones Prisma)
+- Variables secretas NUNCA con prefijo NEXT_PUBLIC_
 
-### DESPUÉS DE CADA CAMBIO
-1. Explícame QUÉ hiciste y POR QUÉ tomaste cada decisión (no solo "listo, ya está").
-2. Dime qué probaste y qué casos borde consideraste.
-3. Dime qué NO hiciste y por qué (deuda técnica pendiente).
-4. Si tomaste un atajo, decláralo explícitamente.
+## Sistema de diseño (UI)
+- Estilo: limpio, moderno, tipo tienda tech. Mobile-first (la mayoría de clientes entran desde WhatsApp en celular)
+- Usar bloques de shadcn/ui adaptados; no inventar componentes nuevos si ya existe uno
+- Cards de producto: imagen, marca, nombre, specs clave, precio en Bs. destacado, botón de WhatsApp/carrito
+- Toda página nueva debe ser responsive y probarse mentalmente en 380px de ancho
 
-### CUANDO TE PIDA ALGO
-- Si mi pedido es vago, hazme 2-3 preguntas clave antes de empezar.
-- Si mi pedido tiene un problema (mala idea técnica, riesgo de seguridad), DIME que está mal y por qué, propón una alternativa. No me des la razón por darme gusto.
-- Si detectas que algo relacionado ya está roto en el código, avísame aunque no te lo haya pedido.
+## Contexto de negocio (Bolivia)
+- Métodos de pago: PayPal, QR Simple, transferencia bancaria
+- IVA 13% cuando aplique facturación
+- Botones de contacto directo a WhatsApp (NEXT_PUBLIC_WHATSAPP_NUMBER)
+- Envíos: entrega en Santa Cruz + envíos a todo el país
+
+## Cómo trabajar en este repo
+- Ante tareas grandes: primero proponer un plan corto, luego ejecutar completo sin pedir confirmación por cada archivo
+- Después de cambios en varios archivos, correr build/lint y arreglar errores antes de reportar
+- No tocar la configuración de Prisma/Neon ni Auth sin avisar primero

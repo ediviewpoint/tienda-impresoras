@@ -37,7 +37,7 @@ export function ProductGallery({ images, alt = "Producto" }: ProductGalleryProps
         <Carousel className="w-full">
           <CarouselContent className="-ml-2">
             {images.map((image, index) => (
-              <CarouselItem key={index} className="pl-2 basis-1/4 lg:basis-1/5">
+              <CarouselItem key={image} className="pl-2 basis-1/4 lg:basis-1/5">
                 <button
                   onClick={() => setSelectedImage(image)}
                   className={`relative aspect-square w-full overflow-hidden rounded-lg border-2 bg-neutral-50 transition-all ${

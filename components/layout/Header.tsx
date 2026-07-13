@@ -1,7 +1,7 @@
 'use client'
 
 import Link from 'next/link'
-import { useCartCount } from '@/lib/store/useStore'
+import { useCartCount, useStore } from '@/lib/store/useStore'
 import { FacturaToggle } from '@/components/ui/FacturaToggle'
 import { useSession, signOut } from 'next-auth/react'
 import { useState, useRef } from 'react'
@@ -12,6 +12,7 @@ export function Header() {
   const { data: session } = useSession()
   const [menuOpen, setMenuOpen] = useState(false)
   const [mobileOpen, setMobileOpen] = useState(false)
+  const setCartOpen = useStore(s => s.setCartOpen)
   const [query, setQuery] = useState('')
   const router = useRouter()
   const inputRef = useRef<HTMLInputElement>(null)
@@ -64,7 +65,7 @@ export function Header() {
         {/* Actions */}
         <div className="flex items-center gap-2 ml-auto flex-shrink-0">
           {/* Cart */}
-          <Link href="/carrito" className="relative w-11 h-11 rounded-full flex items-center justify-center text-gray-500 hover:bg-primary-light hover:text-primary transition-colors">
+          <button onClick={() => setCartOpen(true)} className="relative w-11 h-11 rounded-full flex items-center justify-center text-gray-500 hover:bg-primary-light hover:text-primary transition-colors">
             <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
               <circle cx="9" cy="21" r="1"/><circle cx="20" cy="21" r="1"/>
               <path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6"/>
@@ -74,7 +75,7 @@ export function Header() {
                 {count}
               </span>
             )}
-          </Link>
+          </button>
 
           {/* Account button — desktop only */}
           {session ? (
@@ -163,13 +164,13 @@ export function Header() {
               className="px-3 py-2.5 rounded-lg text-sm font-semibold text-gray-700 hover:bg-gray-50 transition-colors">
               Catálogo
             </Link>
-            <Link href="/carrito" onClick={() => setMobileOpen(false)}
+            <button onClick={() => { setMobileOpen(false); setCartOpen(true); }}
               className="px-3 py-2.5 rounded-lg text-sm font-semibold text-gray-700 hover:bg-gray-50 transition-colors flex items-center justify-between">
               Carrito
               {count > 0 && (
                 <span className="bg-accent text-white text-[10px] font-bold px-2 py-0.5 rounded-full">{count}</span>
               )}
-            </Link>
+            </button>
             {session ? (
               <>
                 <Link href="/cuenta" onClick={() => setMobileOpen(false)}

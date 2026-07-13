@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
+import { revalidatePath } from 'next/cache'
 import { prisma } from '@/lib/db'
 import { requireSession, requireAdmin, isAdmin } from '@/lib/auth-guards'
 
@@ -34,12 +35,10 @@ export async function PATCH(req: NextRequest, { params }: Params) {
   if (adminError) return adminError
 
   const { id } = await params
-  const body = await req.json()
-
-  const existing = await prisma.order.findUnique({
-    where: { id },
-    include: { items: true },
-  })
+  const [body, existing] = await Promise.all([
+    req.json(),
+    prisma.order.findUnique({ where: { id }, include: { items: true } }),
+  ])
   if (!existing) return NextResponse.json({ error: 'Orden no encontrada' }, { status: 404 })
 
   if (body.status && !VALID_STATUSES.includes(body.status)) {
@@ -77,6 +76,16 @@ export async function PATCH(req: NextRequest, { params }: Params) {
       include: { items: { include: { product: true } } },
     })
   })
+
+  // If the order was cancelled, stock was restored — revalidate catalogue pages
+  if (cancelando) {
+    revalidatePath('/')
+    revalidatePath('/catalogo')
+    for (const item of order.items) {
+      revalidatePath(`/producto/${item.product.slug}`)
+    }
+    revalidatePath('/producto/[slug]', 'page')
+  }
 
   return NextResponse.json({ order })
 }

@@ -41,7 +41,7 @@ export default function CarritoPage() {
                 layout
                 initial={{ opacity: 0, y: 10 }}
                 animate={{ opacity: 1, y: 0 }}
-                exit={{ opacity: 0, x: -20, height: 0 }}
+                exit={{ opacity: 0, x: -20 }}
                 className="bg-white rounded-xl border border-gray-100 p-5 flex items-center gap-5"
               >
                 <div

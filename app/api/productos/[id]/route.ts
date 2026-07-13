@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
+import { revalidatePath } from 'next/cache'
 import { del } from '@vercel/blob'
 import { prisma } from '@/lib/db'
 import { PRODUCT_INCLUDE } from '@/lib/db-utils'
@@ -22,9 +23,10 @@ export async function PATCH(req: NextRequest, { params }: Params) {
   if (adminError) return adminError
 
   const { id } = await params
-  const body = await req.json()
-
-  const existing = await prisma.product.findUnique({ where: { id } })
+  const [body, existing] = await Promise.all([
+    req.json(),
+    prisma.product.findUnique({ where: { id } }),
+  ])
   if (!existing) return NextResponse.json({ error: 'Producto no encontrado' }, { status: 404 })
 
   try {
@@ -87,6 +89,12 @@ export async function PATCH(req: NextRequest, { params }: Params) {
     }
 
     const product = await prisma.product.update({ where: { id }, data, include: PRODUCT_INCLUDE })
+
+    revalidatePath('/')
+    revalidatePath('/catalogo')
+    revalidatePath(`/producto/${product.slug}`)
+    revalidatePath('/producto/[slug]', 'page')
+
     return NextResponse.json({ product })
   } catch (err) {
     return NextResponse.json({ error: err instanceof Error ? err.message : 'Error interno' }, { status: 500 })
@@ -106,6 +114,11 @@ export async function DELETE(_req: NextRequest, { params }: Params) {
     const blobUrls = productImages.map(img => img.url).filter(isBlobUrl)
 
     await prisma.product.delete({ where: { id } })
+
+    revalidatePath('/')
+    revalidatePath('/catalogo')
+    revalidatePath(`/producto/${existing.slug}`)
+    revalidatePath('/producto/[slug]', 'page')
 
     if (blobUrls.length > 0) del(blobUrls).catch(() => {})
     return NextResponse.json({ success: true })

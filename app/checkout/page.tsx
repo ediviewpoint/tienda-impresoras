@@ -24,6 +24,7 @@ const PayPalButton = dynamic(
 
 const PAYMENT_METHODS = [
   { id: 'paypal',        icon: '🅿️', label: 'PayPal' },
+  { id: 'qr',            icon: '📲', label: 'QR Simple' },
   { id: 'transferencia', icon: '🏦', label: 'Transferencia' },
   { id: 'manual',        icon: '📱', label: 'WhatsApp' },
 ]
@@ -45,7 +46,7 @@ const checkoutSchema = z.object({
   direccion: z.string().optional(),
   ciudad: z.string().optional(),
   estado: z.string().optional(),
-  paymentMethod: z.enum(['paypal', 'transferencia', 'manual']),
+  paymentMethod: z.enum(['paypal', 'qr', 'transferencia', 'manual']),
 })
 
 type CheckoutForm = z.infer<typeof checkoutSchema>
@@ -210,9 +211,9 @@ export default function CheckoutPage() {
           </div>
         )}
 
-        {isTransfer && (
+        {(isTransfer || paymentMethod === 'qr') && (
           <div className="bg-primary-light border border-primary/10 rounded-xl p-5 text-left space-y-3">
-            <p className="font-bold text-gray-900">Realiza tu transferencia bancaria:</p>
+            <p className="font-bold text-gray-900">{paymentMethod === 'qr' ? 'Realiza el pago por QR Simple:' : 'Realiza tu transferencia bancaria:'}</p>
             <div className="space-y-2 text-sm">
               {Object.entries(TRANSFER_INFO).map(([k, v]) => (
                 <div key={k} className="flex justify-between">
@@ -229,6 +230,27 @@ export default function CheckoutPage() {
                 <span className="font-semibold font-mono">{orderResult.orderNumber}</span>
               </div>
             </div>
+            
+            {paymentMethod === 'qr' && (
+              <div className="flex items-center justify-center p-4 bg-white border rounded-lg mt-4">
+                <p className="text-gray-500 text-sm">Escanea este código o haz una transferencia a la cuenta de arriba.</p>
+                {/* Aquí idealmente renderizamos la imagen QR. Por ahora placeholder o texto. */}
+              </div>
+            )}
+
+            <div className="pt-4 border-t border-primary/10 space-y-2">
+              <p className="text-xs text-gray-500 text-center">Una vez realizado el pago, envíanos el comprobante:</p>
+              <a
+                href={`https://wa.me/${process.env.NEXT_PUBLIC_WHATSAPP_NUMBER ?? '591XXXXXXXXX'}?text=${encodeURIComponent(`Hola, acabo de realizar el pago de mi pedido *#${orderResult.orderNumber}*. Adjunto el comprobante.`)}`}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="flex items-center justify-center gap-2 w-full h-10 rounded-full bg-whatsapp text-white font-bold text-sm hover:bg-whatsapp-dark transition-colors"
+              >
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347z"/><path d="M12 0C5.373 0 0 5.373 0 12c0 2.116.554 4.103 1.524 5.826L.057 23.985l6.305-1.654A11.954 11.954 0 0012 24c6.627 0 12-5.373 12-12S18.627 0 12 0zm0 21.882a9.875 9.875 0 01-5.032-1.378l-.361-.214-3.741.981 1-3.641-.235-.374A9.86 9.86 0 012.118 12C2.118 6.539 6.539 2.118 12 2.118c5.462 0 9.882 4.421 9.882 9.882 0 5.462-4.42 9.882-9.882 9.882z"/></svg>
+                Enviar comprobante
+              </a>
+            </div>
+            
             <p className="text-xs text-gray-400">Tu pedido se procesará al confirmar el pago (1-2 horas hábiles).</p>
           </div>
         )}
@@ -317,20 +339,21 @@ export default function CheckoutPage() {
             </div>
 
             <AnimatePresence>
-              {paymentMethod === 'transferencia' && (
-                <motion.div initial={{ opacity: 0, height: 0 }} animate={{ opacity: 1, height: 'auto' }} exit={{ opacity: 0, height: 0 }}
+              {(paymentMethod === 'transferencia' || paymentMethod === 'qr') && (
+                <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
                   className="bg-primary-light rounded-xl p-4 text-sm space-y-2">
-                  <p className="font-bold text-gray-800 text-xs uppercase tracking-wide mb-2">Datos de transferencia</p>
+                  <p className="font-bold text-gray-800 text-xs uppercase tracking-wide mb-2">Datos para el pago</p>
                   {Object.entries(TRANSFER_INFO).map(([k, v]) => (
                     <div key={k} className="flex justify-between">
                       <span className="text-gray-500 capitalize">{k}:</span>
                       <span className="font-semibold font-mono text-gray-800">{v}</span>
                     </div>
                   ))}
+                  {paymentMethod === 'qr' && <p className="text-xs text-gray-500 mt-2">Podrás enviar tu comprobante en el siguiente paso.</p>}
                 </motion.div>
               )}
               {paymentMethod === 'manual' && (
-                <motion.div initial={{ opacity: 0, height: 0 }} animate={{ opacity: 1, height: 'auto' }} exit={{ opacity: 0, height: 0 }}
+                <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
                   className="bg-success-bg rounded-xl p-4 text-sm text-gray-600">
                   Se registrará tu pedido y recibirás un mensaje de WhatsApp para coordinar el pago y la entrega.
                 </motion.div>
@@ -393,9 +416,9 @@ export default function CheckoutPage() {
           <AnimatePresence>
             {stockError && (
               <motion.div
-                initial={{ opacity: 0, height: 0 }}
-                animate={{ opacity: 1, height: 'auto' }}
-                exit={{ opacity: 0, height: 0 }}
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                exit={{ opacity: 0 }}
                 className="mt-4 bg-error-bg border border-error/20 rounded-xl px-4 py-3 text-sm text-error font-medium"
               >
                 <span className="font-bold">Sin stock:</span> {stockError}
@@ -409,7 +432,7 @@ export default function CheckoutPage() {
               disabled={saving || items.length === 0}
               className="mt-5 w-full h-12 rounded-full bg-accent text-white font-bold text-sm flex items-center justify-center gap-2 hover:bg-accent-dark transition-colors shadow-[0_4px_16px_rgba(224,90,28,.35)] disabled:opacity-60 disabled:cursor-not-allowed"
             >
-              {saving ? 'Procesando…' : paymentMethod === 'manual' ? '📱 Confirmar y abrir WhatsApp' : '🏦 Confirmar transferencia'}
+              {saving ? 'Procesando…' : paymentMethod === 'manual' ? '📱 Confirmar y abrir WhatsApp' : '🏦 Confirmar pago'}
             </button>
           )}
         </div>

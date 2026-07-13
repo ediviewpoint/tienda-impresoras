@@ -10,7 +10,9 @@ import { SocialLoginButton } from '@/components/ui/SocialLoginButton'
 export default function LoginPage() {
   const router = useRouter()
   const searchParams = useSearchParams()
-  const callbackUrl = searchParams.get('callbackUrl') ?? '/cuenta'
+  const raw = searchParams.get('callbackUrl') ?? '/cuenta'
+  // Rechaza cualquier URL absoluta para evitar open redirect
+  const callbackUrl = raw.startsWith('/') ? raw : '/cuenta'
   const errorParam = searchParams.get('error')
 
   const [form, setForm] = useState({ email: '', password: '' })

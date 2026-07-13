@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
+import { revalidatePath } from 'next/cache'
 import { prisma } from '@/lib/db'
 import { auth } from '@/auth'
 
@@ -42,6 +43,8 @@ export async function POST(req: NextRequest) {
       reviewCount: stats._count.rating,
     },
   })
+
+  revalidatePath(`/producto/${product.slug}`)
 
   return NextResponse.json({ review }, { status: 201 })
 }

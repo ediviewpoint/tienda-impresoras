@@ -19,9 +19,8 @@ export async function generateMetadata({ searchParams }: Props) {
 }
 
 export default async function CatalogoPage({ searchParams }: Props) {
-  const { cat: initialCat, q: initialQ } = await searchParams
-
-  const [dbProducts, dbCategories, totalActive] = await Promise.all([
+  const [{ cat: initialCat, q: initialQ }, dbProducts, dbCategories, totalActive] = await Promise.all([
+    searchParams,
     prisma.product.findMany({
       where: { active: true },
       include: PRODUCT_INCLUDE,

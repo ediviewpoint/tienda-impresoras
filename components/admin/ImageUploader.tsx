@@ -134,7 +134,7 @@ export default function ImageUploader({ images, onChange, maxImages = 8 }: Props
       {images.length > 0 && (
         <div className="grid grid-cols-4 gap-2">
           {images.map((img, i) => (
-            <div key={i} className="relative group aspect-square rounded-lg overflow-hidden border border-gray-200 bg-gray-50">
+            <div key={img.url || `slot-${img.order}`} className="relative group aspect-square rounded-lg overflow-hidden border border-gray-200 bg-gray-50">
               {img.uploading ? (
                 <div className="absolute inset-0 flex items-center justify-center">
                   <div className="w-5 h-5 border-2 border-primary border-t-transparent rounded-full animate-spin" />

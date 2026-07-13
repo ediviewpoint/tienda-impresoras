@@ -4,14 +4,18 @@ import { dbToUIProduct } from '@/lib/db-utils'
 import { ProductGrid } from '@/components/product/ProductGrid'
 
 export async function FeaturedProducts() {
-  const dbProducts = await prisma.product.findMany({
-    where: { active: true, inStock: true },
-    include: { brand: true, category: true, images: { orderBy: { order: 'asc' } } },
-    orderBy: { reviewCount: 'desc' },
-    take: 4,
-  })
-
-  const products = dbProducts.map(dbToUIProduct)
+  let products: ReturnType<typeof dbToUIProduct>[] = []
+  try {
+    const dbProducts = await prisma.product.findMany({
+      where: { active: true, inStock: true },
+      include: { brand: true, category: true, images: { orderBy: { order: 'asc' } } },
+      orderBy: { reviewCount: 'desc' },
+      take: 4,
+    })
+    products = dbProducts.map(dbToUIProduct)
+  } catch {
+    // DB unavailable during build — render empty section
+  }
 
   return (
     <section className="max-w-7xl mx-auto px-6 mt-12">

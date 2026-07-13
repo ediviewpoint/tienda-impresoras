@@ -5,22 +5,27 @@ import { PrismaNeon } from '@prisma/adapter-neon'
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 ;(Prisma.Decimal.prototype as any).toJSON = function () { return this.toNumber() }
 
-const url = process.env.DATABASE_URL ?? ''
-
-function createPrisma() {
-  if (url.startsWith('file:') || url === '') {
-    // Local dev — SQLite (dynamic require avoids bundling native module on Vercel)
-    const { PrismaBetterSqlite3 } = require('@prisma/adapter-better-sqlite3')
-    const adapter = new PrismaBetterSqlite3({ url: url || 'file:./dev.db' })
-    return new PrismaClient({ adapter })
-  }
-
-  // Production — Neon PostgreSQL via WebSocket Pool (supports writes + transactions)
-  // PrismaNeonHttp is read-only in Prisma v7; PrismaNeon creates its Pool internally
+function createPrisma(): PrismaClient {
+  const url = process.env.DATABASE_URL
+  if (!url) throw new Error('DATABASE_URL is not set')
   const adapter = new PrismaNeon({ connectionString: url })
   return new PrismaClient({ adapter })
 }
 
-const globalForPrisma = globalThis as unknown as { prisma?: PrismaClient }
-export const prisma = globalForPrisma.prisma ?? createPrisma()
-if (process.env.NODE_ENV !== 'production') globalForPrisma.prisma = prisma
+const g = globalThis as unknown as { _prisma?: PrismaClient }
+
+function getClient(): PrismaClient {
+  if (!g._prisma) g._prisma = createPrisma()
+  return g._prisma
+}
+
+// Lazy proxy: Prisma client is only created on first DB call, not at module import time.
+// This prevents build failures when DATABASE_URL is absent during static analysis.
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+export const prisma = new Proxy({} as PrismaClient, {
+  get(_, prop) {
+    const client = getClient()
+    const value = (client as any)[prop]
+    return typeof value === 'function' ? value.bind(client) : value
+  },
+})

@@ -23,6 +23,10 @@ interface StoreState {
   // ── Computed (getters) ────────────────────
   // Precio final según factura: sin factura = precio / (1 + IVA)
   getPrecio: (basePrice: number) => number
+
+  // ── UI State ──────────────────────────────
+  isCartOpen: boolean
+  setCartOpen: (open: boolean) => void
 }
 
 export const useStore = create<StoreState>()(
@@ -72,6 +76,12 @@ export const useStore = create<StoreState>()(
       // ── Precio dinámico ──────────────────
       getPrecio(basePrice) {
         return get().tieneFactura ? basePrice : basePrice / (1 + IVA_RATE)
+      },
+
+      // ── UI State ────────────────────────
+      isCartOpen: false,
+      setCartOpen(open) {
+        set({ isCartOpen: open })
       },
     }),
     {
