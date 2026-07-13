@@ -5,6 +5,7 @@ import { dbToUIProduct } from '@/lib/db-utils'
 import { ProductDetail } from './ProductDetail'
 import { ReviewForm } from '@/components/product/ReviewForm'
 import { Breadcrumb } from '@/components/ui/Breadcrumb'
+import { RelatedProducts } from '@/components/product/RelatedProducts'
 
 interface Props {
   params: Promise<{ slug: string }>
@@ -97,6 +98,7 @@ export default async function ProductPage({ params }: Props) {
           user: r.user,
         }))}
       />
+      <RelatedProducts categoryId={p.categoryId} excludeSlug={p.slug} />
     </>
   )
 }

@@ -177,8 +177,8 @@ export default function AdminProducts({ initialProducts }: Props) {
         </div>
       </div>
 
-      <div className="bg-white rounded-xl border border-gray-100 overflow-hidden">
-        <table className="w-full text-sm">
+      <div className="bg-white rounded-xl border border-gray-100 overflow-x-auto">
+        <table className="w-full text-sm min-w-[800px]">
           <thead>
             <tr className="text-left text-xs text-gray-400 border-b border-gray-100 bg-gray-50">
               {['Producto', 'SKU', 'Categoría', 'Precio', 'Unidades', 'Activo', ''].map(h => (
@@ -292,11 +292,11 @@ export default function AdminProducts({ initialProducts }: Props) {
                 </div>
                 <div>
                   <label className="text-xs font-semibold text-gray-500 mb-1 block">Precio *</label>
-                  <input type="number" value={editing.price} onChange={e => setField('price', Number(e.target.value))} className="w-full h-10 border border-gray-200 rounded-lg px-3 text-sm outline-none focus:border-primary transition-all" />
+                  <input type="number" inputMode="decimal" value={editing.price} onChange={e => setField('price', Number(e.target.value))} className="w-full h-10 border border-gray-200 rounded-lg px-3 text-sm outline-none focus:border-primary transition-all" />
                 </div>
                 <div>
                   <label className="text-xs font-semibold text-gray-500 mb-1 block">Precio original</label>
-                  <input type="number" value={editing.originalPrice ?? ''} onChange={e => setField('originalPrice', e.target.value ? Number(e.target.value) : undefined)} placeholder="Opcional" className="w-full h-10 border border-gray-200 rounded-lg px-3 text-sm outline-none focus:border-primary transition-all" />
+                  <input type="number" inputMode="decimal" value={editing.originalPrice ?? ''} onChange={e => setField('originalPrice', e.target.value ? Number(e.target.value) : undefined)} placeholder="Opcional" className="w-full h-10 border border-gray-200 rounded-lg px-3 text-sm outline-none focus:border-primary transition-all" />
                 </div>
                 <div>
                   <label className="text-xs font-semibold text-gray-500 mb-1 block">Categoría</label>
@@ -327,12 +327,14 @@ export default function AdminProducts({ initialProducts }: Props) {
               <div>
                 <label className="text-xs font-semibold text-gray-500 mb-1 block">Características (una por línea)</label>
                 <textarea value={editing.featuresText} onChange={e => setField('featuresText', e.target.value)} rows={4} className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm outline-none focus:border-primary resize-none" />
+                <p className="text-[11px] text-gray-400 mt-1">Formato recomendado: <span className="font-mono">RAM: 8GB DDR4</span> — el ícono se asigna automáticamente según la categoría.</p>
               </div>
 
               <div>
                 <label className="text-xs font-semibold text-gray-500 mb-1 block">Unidades en stock</label>
                 <input
                   type="number"
+                  inputMode="numeric"
                   min={0}
                   value={editing.stock}
                   onChange={e => setField('stock', Math.max(0, Number(e.target.value)))}

@@ -11,6 +11,7 @@ import { NuqsAdapter } from 'nuqs/adapters/next/app'
 import { WhatsAppButton } from '@/components/shared/WhatsAppButton'
 import { CartDrawer } from '@/components/carrito/CartDrawer'
 import { MotionConfig } from 'framer-motion'
+import Toaster from '@/components/admin/Toaster'
 
 const geist = Geist({subsets:['latin'],variable:'--font-sans'});
 
@@ -48,6 +49,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
               <Nav />
               <main className="flex-1 pb-16">{children}</main>
               <CartDrawer />
+              <Toaster />
               <WhatsAppButton />
               <Footer />
             </SessionProvider>

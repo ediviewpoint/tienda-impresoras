@@ -42,37 +42,54 @@ export default function CarritoPage() {
                 initial={{ opacity: 0, y: 10 }}
                 animate={{ opacity: 1, y: 0 }}
                 exit={{ opacity: 0, x: -20 }}
-                className="bg-white rounded-xl border border-gray-100 p-5 flex items-center gap-5"
+                className="bg-white rounded-xl border border-gray-100 p-4 sm:p-5"
               >
-                <div
-                  className="w-20 h-20 rounded-lg flex items-center justify-center flex-shrink-0"
-                  style={{ background: `${product.brandColor}18` }}
-                >
-                  <svg width="48" height="48" viewBox="0 0 120 120" fill="none">
-                    <rect x="15" y="40" width="90" height="50" rx="6" fill={product.brandColor} fillOpacity="0.25"/>
-                    <rect x="25" y="20" width="70" height="24" rx="4" fill={product.brandColor} fillOpacity="0.15"/>
-                  </svg>
-                </div>
+                <div className="flex gap-4 items-start">
+                  <div
+                    className="w-16 h-16 sm:w-20 sm:h-20 rounded-lg flex items-center justify-center flex-shrink-0"
+                    style={{ background: `${product.brandColor}18` }}
+                  >
+                    <svg width="40" height="40" viewBox="0 0 120 120" fill="none">
+                      <rect x="15" y="40" width="90" height="50" rx="6" fill={product.brandColor} fillOpacity="0.25"/>
+                      <rect x="25" y="20" width="70" height="24" rx="4" fill={product.brandColor} fillOpacity="0.15"/>
+                    </svg>
+                  </div>
 
-                <div className="flex-1">
-                  <p className="text-xs font-bold uppercase tracking-wider mb-0.5" style={{ color: product.brandColor }}>{product.brand}</p>
-                  <p className="font-semibold text-gray-900 text-sm leading-snug">{product.name}</p>
-                  <div className="mt-1">
-                    <AnimatedPrice basePrice={product.price} size="sm" />
+                  <div className="flex-1 min-w-0">
+                    <p className="text-xs font-bold uppercase tracking-wider mb-0.5" style={{ color: product.brandColor }}>{product.brand}</p>
+                    <p className="font-semibold text-gray-900 text-sm leading-snug line-clamp-2">{product.name}</p>
+                    <div className="mt-1">
+                      <AnimatedPrice basePrice={product.price} size="sm" />
+                    </div>
+
+                    {/* Mobile: controls below info */}
+                    <div className="flex items-center gap-3 mt-3 sm:hidden">
+                      <div className="flex items-center border border-gray-200 rounded-full overflow-hidden">
+                        <button onClick={() => updateQty(product.id, quantity - 1)} className="w-9 h-9 flex items-center justify-center text-gray-500 hover:bg-gray-50 font-bold">−</button>
+                        <span className="w-8 text-center font-bold text-sm">{quantity}</span>
+                        <button onClick={() => updateQty(product.id, quantity + 1)} className="w-9 h-9 flex items-center justify-center text-gray-500 hover:bg-gray-50 font-bold">+</button>
+                      </div>
+                      <div className="flex-1" />
+                      <AnimatedPrice basePrice={product.price * quantity} size="sm" />
+                      <button onClick={() => remove(product.id)} className="text-gray-300 hover:text-red-400 transition-colors">
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round"><path d="M18 6 6 18M6 6l12 12"/></svg>
+                      </button>
+                    </div>
+                  </div>
+
+                  {/* Desktop: controls inline */}
+                  <div className="hidden sm:flex items-center gap-5 flex-shrink-0">
+                    <div className="flex items-center border border-gray-200 rounded-full overflow-hidden">
+                      <button onClick={() => updateQty(product.id, quantity - 1)} className="w-9 h-9 flex items-center justify-center text-gray-500 hover:bg-gray-50 font-bold">−</button>
+                      <span className="w-8 text-center font-bold text-sm">{quantity}</span>
+                      <button onClick={() => updateQty(product.id, quantity + 1)} className="w-9 h-9 flex items-center justify-center text-gray-500 hover:bg-gray-50 font-bold">+</button>
+                    </div>
+                    <AnimatedPrice basePrice={product.price * quantity} size="sm" />
+                    <button onClick={() => remove(product.id)} className="text-gray-300 hover:text-red-400 transition-colors">
+                      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round"><path d="M18 6 6 18M6 6l12 12"/></svg>
+                    </button>
                   </div>
                 </div>
-
-                <div className="flex items-center border border-gray-200 rounded-full overflow-hidden">
-                  <button onClick={() => updateQty(product.id, quantity - 1)} className="w-9 h-9 flex items-center justify-center text-gray-500 hover:bg-gray-50 font-bold">−</button>
-                  <span className="w-8 text-center font-bold text-sm">{quantity}</span>
-                  <button onClick={() => updateQty(product.id, quantity + 1)} className="w-9 h-9 flex items-center justify-center text-gray-500 hover:bg-gray-50 font-bold">+</button>
-                </div>
-
-                <AnimatedPrice basePrice={product.price * quantity} size="sm" />
-
-                <button onClick={() => remove(product.id)} className="text-gray-300 hover:text-red-400 transition-colors ml-1">
-                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round"><path d="M18 6 6 18M6 6l12 12"/></svg>
-                </button>
               </motion.div>
             ))}
           </AnimatePresence>

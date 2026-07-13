@@ -271,7 +271,7 @@ export default function CheckoutPage() {
 
   // ── Checkout form ─────────────────────────────────────────────────────────────
   const inputCls = (hasError?: boolean) =>
-    `w-full h-10 border rounded-lg px-3 text-sm outline-none transition-all ${
+    `w-full h-11 border rounded-lg px-3 text-sm outline-none transition-all ${
       hasError ? 'border-red-400 focus:border-red-500' : 'border-gray-200 focus:border-primary'
     }`
 
@@ -302,7 +302,7 @@ export default function CheckoutPage() {
               </div>
               <div>
                 <label className="text-xs font-semibold text-gray-500 mb-1 block">Código Postal</label>
-                <input {...register('cp')} placeholder="0000" className={inputCls(!!errors.cp)} maxLength={6} />
+                <input {...register('cp')} placeholder="0000" inputMode="numeric" className={inputCls(!!errors.cp)} maxLength={6} />
                 <FieldError msg={errors.cp?.message} />
               </div>
               <div className="sm:col-span-2">
@@ -323,7 +323,7 @@ export default function CheckoutPage() {
           {/* Payment method */}
           <div className="bg-white rounded-xl border border-gray-100 p-6">
             <h3 className="font-bold text-gray-900 mb-4">Método de pago</h3>
-            <div className="grid grid-cols-3 gap-3 mb-5">
+            <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 mb-5">
               {PAYMENT_METHODS.map(({ id, icon, label }) => (
                 <label
                   key={id}

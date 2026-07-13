@@ -1,5 +1,6 @@
 'use client'
 
+import { useState } from 'react'
 import { useQueryState } from 'nuqs'
 import { ProductGrid } from '@/components/product/ProductGrid'
 import type { Product } from '@/lib/types/index'
@@ -22,6 +23,7 @@ interface Props {
 export function CatalogoClient({ allProducts, categories, totalActive, initialQ, initialCat }: Props) {
   const [cat, setCat] = useQueryState('cat', { defaultValue: initialCat ?? '', shallow: false })
   const [q, setQ] = useQueryState('q', { defaultValue: initialQ ?? '', shallow: false })
+  const [sheetOpen, setSheetOpen] = useState(false)
 
   const filtered = allProducts.filter(p => {
     const matchesCat = !cat || p.category === cat
@@ -38,32 +40,89 @@ export function CatalogoClient({ allProducts, categories, totalActive, initialQ,
           value={q}
           onChange={e => setQ(e.target.value || null)}
           placeholder="Buscar por nombre o marca…"
-          className="w-full h-10 border border-gray-200 rounded-xl px-4 text-sm outline-none focus:border-primary transition-all bg-white"
+          className="w-full h-11 border border-gray-200 rounded-xl px-4 text-sm outline-none focus:border-primary transition-all bg-white"
         />
       </div>
 
-      {/* Mobile category chips */}
-      <div className="lg:hidden flex gap-2 overflow-x-auto pb-2 mb-5">
+      {/* Mobile: Filtrar button */}
+      <div className="lg:hidden flex items-center gap-2 mb-5">
         <button
-          onClick={() => setCat(null)}
-          className={`flex-shrink-0 h-8 px-3 rounded-full text-sm font-semibold transition-colors ${
-            !cat ? 'bg-primary text-white' : 'bg-white border border-gray-200 text-gray-600'
-          }`}
+          onClick={() => setSheetOpen(true)}
+          className="flex items-center gap-2 h-10 px-4 rounded-full border border-gray-200 bg-white text-sm font-semibold text-gray-700 hover:border-primary transition-colors"
         >
-          Todos
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+            <line x1="4" y1="6" x2="20" y2="6"/><line x1="8" y1="12" x2="16" y2="12"/><line x1="11" y1="18" x2="13" y2="18"/>
+          </svg>
+          Filtrar
+          {cat && (
+            <span className="bg-primary text-white text-[10px] font-bold w-4 h-4 rounded-full flex items-center justify-center">1</span>
+          )}
         </button>
-        {categories.map(c => (
+        {cat && (
           <button
-            key={c.id}
-            onClick={() => setCat(cat === c.slug ? null : c.slug)}
-            className={`flex-shrink-0 h-8 px-3 rounded-full text-sm font-semibold transition-colors ${
-              cat === c.slug ? 'bg-primary text-white' : 'bg-white border border-gray-200 text-gray-600'
-            }`}
+            onClick={() => setCat(null)}
+            className="text-xs text-primary font-semibold hover:underline"
           >
-            {c.name}
+            Limpiar
           </button>
-        ))}
+        )}
+        {cat && (
+          <span className="text-xs text-gray-500 truncate">
+            {categories.find(c => c.slug === cat)?.name}
+          </span>
+        )}
       </div>
+
+      {/* Mobile filter sheet */}
+      {sheetOpen && (
+        <div className="lg:hidden fixed inset-0 z-50">
+          <div
+            className="absolute inset-0 bg-black/40"
+            onClick={() => setSheetOpen(false)}
+          />
+          <div className="absolute bottom-0 inset-x-0 bg-white rounded-t-2xl shadow-2xl max-h-[75vh] flex flex-col">
+            <div className="flex items-center justify-between px-5 py-4 border-b border-gray-100 flex-shrink-0">
+              <h3 className="font-bold text-gray-900">Categoría</h3>
+              <button
+                onClick={() => setSheetOpen(false)}
+                className="w-8 h-8 flex items-center justify-center rounded-full hover:bg-gray-100 text-gray-500"
+                aria-label="Cerrar"
+              >
+                ✕
+              </button>
+            </div>
+            <div className="overflow-y-auto px-4 py-3 space-y-1">
+              <button
+                onClick={() => { setCat(null); setSheetOpen(false) }}
+                className={`w-full text-left px-4 py-3 rounded-xl text-sm transition-colors ${
+                  !cat ? 'bg-primary-light text-primary font-semibold' : 'text-gray-700 hover:bg-gray-50'
+                }`}
+              >
+                Todos <span className="text-gray-400 font-normal">({totalActive})</span>
+              </button>
+              {categories.map(c => (
+                <button
+                  key={c.id}
+                  onClick={() => { setCat(c.slug); setSheetOpen(false) }}
+                  className={`w-full text-left px-4 py-3 rounded-xl text-sm transition-colors ${
+                    cat === c.slug ? 'bg-primary-light text-primary font-semibold' : 'text-gray-700 hover:bg-gray-50'
+                  }`}
+                >
+                  {c.name} <span className="text-gray-400 font-normal">({c._count.products})</span>
+                </button>
+              ))}
+            </div>
+            <div className="px-4 py-4 border-t border-gray-100 flex-shrink-0">
+              <button
+                onClick={() => setSheetOpen(false)}
+                className="w-full h-11 rounded-full bg-primary text-white font-bold text-sm"
+              >
+                Ver {allProducts.filter(p => !cat || p.category === cat).length} productos
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
 
       <div className="flex gap-8">
         {/* Sidebar — desktop only */}
